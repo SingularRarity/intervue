@@ -1,0 +1,20 @@
+# Local development overrides — use with: docker-compose -f docker-compose.yml -f docker-compose.local.yml
+version: '3.8'
+
+services:
+  backend:
+    environment:
+      APP_ENV: development
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/ai_interview
+      JWT_SECRET: dev-secret-not-for-production
+      REDIS_URL: redis://redis:6379
+      PORT: 8080
+      RUST_LOG: debug
+    volumes:
+      - ./backend/migrations:/app/migrations
+      - ./backend/src:/app/src:ro  # source visible inside container for debugging
+
+  frontend:
+    environment:
+      VITE_API_URL: http://localhost:8080/api/v1
+      VITE_WS_URL: ws://localhost:8080
