@@ -17,26 +17,33 @@ pub struct LogEventRequest {
     pub metadata: Option<serde_json::Value>,
 }
 
+#[derive(Debug, sqlx::FromRow)]
+struct ProctoringEvent {
+    event_type: String,
+    occurred_at: chrono::DateTime<Utc>,
+    metadata: Option<serde_json::Value>,
+}
+
 pub async fn get_proctoring_summary(
     State(state): State<Arc<AppState>>,
     claims: axum::Extension<AuthClaims>,
     Path(session_id): Path<Uuid>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
     // Verify session belongs to tenant
-    sqlx::query!(
-        "SELECT id FROM interview_sessions WHERE id = $1 AND tenant_id = $2",
-        session_id,
-        claims.sub
+    sqlx::query(
+        "SELECT id FROM interview_sessions WHERE id = $1 AND tenant_id = $2"
     )
+    .bind(session_id)
+    .bind(claims.sub)
     .fetch_one(state.db.pool())
     .await
     .map_err(|_| (StatusCode::NOT_FOUND, Json(json!({ "error": "Session not found" }))))?;
 
-    let events = sqlx::query!(
+    let events = sqlx::query_as::<_, ProctoringEvent>(
         "SELECT event_type, occurred_at, metadata \
-         FROM proctoring_events WHERE session_id = $1 ORDER BY occurred_at",
-        session_id
+         FROM proctoring_events WHERE session_id = $1 ORDER BY occurred_at"
     )
+    .bind(session_id)
     .fetch_all(state.db.pool())
     .await
     .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;
@@ -74,15 +81,15 @@ pub async fn log_proctoring_event(
     }
 
     let id = Uuid::new_v4();
-    sqlx::query!(
+    sqlx::query(
         "INSERT INTO proctoring_events (id, session_id, event_type, occurred_at, metadata) \
-         VALUES ($1, $2, $3, $4, $5)",
-        id,
-        session_id,
-        req.event_type,
-        Utc::now(),
-        req.metadata
+         VALUES ($1, $2, $3, $4, $5)"
     )
+    .bind(id)
+    .bind(session_id)
+    .bind(&req.event_type)
+    .bind(Utc::now())
+    .bind(req.metadata)
     .execute(state.db.pool())
     .await
     .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;

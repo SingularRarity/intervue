@@ -26,15 +26,15 @@ pub async fn parse_resume(
     claims: axum::Extension<AuthClaims>,
     Json(req): Json<ParseResumeRequest>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
-    let tenant = sqlx::query!(
-        "SELECT claude_api_key FROM tenants WHERE id = $1",
-        claims.sub
+    let tenant = sqlx::query_as::<_, (Option<String>,)>(
+        "SELECT claude_api_key FROM tenants WHERE id = $1"
     )
+    .bind(claims.sub)
     .fetch_one(state.db.pool())
     .await
     .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;
 
-    let api_key = tenant.claude_api_key.ok_or((
+    let api_key = tenant.0.ok_or((
         StatusCode::BAD_REQUEST,
         Json(json!({ "error": "Claude API key not configured" })),
     ))?;

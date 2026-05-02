@@ -11,7 +11,7 @@ use uuid::Uuid;
 
 use crate::{models::AuthClaims, AppState};
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, sqlx::FromRow)]
 pub struct TeamMember {
     pub id: Uuid,
     pub email: String,
@@ -30,12 +30,11 @@ pub async fn list_team(
     State(state): State<Arc<AppState>>,
     claims: axum::Extension<AuthClaims>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
-    let members = sqlx::query_as!(
-        TeamMember,
+    let members = sqlx::query_as::<_, TeamMember>(
         "SELECT id, email, role, invited_at, accepted_at \
-         FROM team_members WHERE tenant_id = $1 ORDER BY invited_at DESC",
-        claims.sub
+         FROM team_members WHERE tenant_id = $1 ORDER BY invited_at DESC"
     )
+    .bind(claims.sub)
     .fetch_all(state.db.pool())
     .await
     .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;
@@ -57,16 +56,16 @@ pub async fn invite_member(
     }
 
     let id = Uuid::new_v4();
-    sqlx::query!(
+    sqlx::query(
         "INSERT INTO team_members (id, tenant_id, email, role, invited_at) \
          VALUES ($1, $2, $3, $4, $5) \
-         ON CONFLICT (tenant_id, email) DO UPDATE SET role = $4",
-        id,
-        claims.sub,
-        req.email,
-        req.role,
-        Utc::now()
+         ON CONFLICT (tenant_id, email) DO UPDATE SET role = $4"
     )
+    .bind(id)
+    .bind(claims.sub)
+    .bind(&req.email)
+    .bind(&req.role)
+    .bind(Utc::now())
     .execute(state.db.pool())
     .await
     .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;
@@ -84,11 +83,11 @@ pub async fn remove_member(
     claims: axum::Extension<AuthClaims>,
     Path(member_id): Path<Uuid>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
-    let rows = sqlx::query!(
-        "DELETE FROM team_members WHERE id = $1 AND tenant_id = $2",
-        member_id,
-        claims.sub
+    let rows = sqlx::query(
+        "DELETE FROM team_members WHERE id = $1 AND tenant_id = $2"
     )
+    .bind(member_id)
+    .bind(claims.sub)
     .execute(state.db.pool())
     .await
     .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;

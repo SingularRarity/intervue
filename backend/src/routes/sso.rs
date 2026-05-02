@@ -19,13 +19,16 @@ pub async fn get_sso_config(
     State(state): State<Arc<AppState>>,
     claims: axum::Extension<AuthClaims>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
-    let row = sqlx::query!("SELECT sso_config FROM tenants WHERE id = $1", claims.sub)
-        .fetch_one(state.db.pool())
-        .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;
+    let row = sqlx::query_as::<_, (Option<serde_json::Value>,)>(
+        "SELECT sso_config FROM tenants WHERE id = $1"
+    )
+    .bind(claims.sub)
+    .fetch_one(state.db.pool())
+    .await
+    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;
 
     // Strip secrets from response
-    let mut config = row.sso_config.unwrap_or(json!({ "enabled": false }));
+    let mut config = row.0.unwrap_or(json!({ "enabled": false }));
     if let Some(obj) = config.as_object_mut() {
         obj.remove("client_secret");
     }
@@ -38,12 +41,12 @@ pub async fn update_sso_config(
     claims: axum::Extension<AuthClaims>,
     Json(config): Json<SsoConfig>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
-    sqlx::query!(
-        "UPDATE tenants SET sso_config = $1, updated_at = $2 WHERE id = $3",
-        serde_json::to_value(&config).unwrap(),
-        Utc::now(),
-        claims.sub
+    sqlx::query(
+        "UPDATE tenants SET sso_config = $1, updated_at = $2 WHERE id = $3"
     )
+    .bind(serde_json::to_value(&config).unwrap())
+    .bind(Utc::now())
+    .bind(claims.sub)
     .execute(state.db.pool())
     .await
     .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;

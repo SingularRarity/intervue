@@ -7,6 +7,8 @@ use std::sync::Arc;
 use uuid::Uuid;
 use chrono::Utc;
 
+use validator::Validate;
+
 use crate::{
     AppState,
     models::*,

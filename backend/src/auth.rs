@@ -3,7 +3,6 @@ use axum::{
     http::{header, StatusCode},
     middleware::Next,
     response::Response,
-    body::Body,
 };
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use std::sync::Arc;
@@ -93,5 +92,5 @@ pub fn verify_password(password: &str, hash: &str) -> anyhow::Result<bool> {
     let argon2 = argon2::Argon2::default();
     let parsed_hash = argon2::PasswordHash::new(hash)
         .map_err(|e| anyhow::anyhow!("Invalid hash: {}", e))?;
-    Ok(argon2::PasswordVerifier::verify_password(&argon2, password, &parsed_hash).is_ok())
+    Ok(argon2::PasswordVerifier::verify_password(&argon2, password.as_bytes(), &parsed_hash).is_ok())
 }

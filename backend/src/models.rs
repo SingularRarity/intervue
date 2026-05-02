@@ -83,8 +83,8 @@ impl From<Tenant> for TenantResponse {
 
 // ============== INTERVIEW TEMPLATE MODELS ==============
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow, sqlx::Type)]
-#[sqlx(type_name = "interview_type")]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type)]
+#[sqlx(type_name = "interview_type", rename_all = "PascalCase")]
 pub enum InterviewType {
     Technical,
     Behavioral,
@@ -93,8 +93,8 @@ pub enum InterviewType {
     Screening,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow, sqlx::Type)]
-#[sqlx(type_name = "difficulty_level")]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type)]
+#[sqlx(type_name = "difficulty_level", rename_all = "PascalCase")]
 pub enum DifficultyLevel {
     Easy,
     Medium,
@@ -174,8 +174,8 @@ pub struct CreateCandidateRequest {
 
 // ============== INTERVIEW SESSION MODELS ==============
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow, sqlx::Type)]
-#[sqlx(type_name = "session_status")]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type)]
+#[sqlx(type_name = "session_status", rename_all = "PascalCase")]
 pub enum SessionStatus {
     Scheduled,
     InProgress,
@@ -279,7 +279,7 @@ pub struct SkillCount {
     pub count: i64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct SessionSummary {
     pub id: Uuid,
     pub candidate_name: String,

@@ -2,7 +2,7 @@ use axum::{
     extract::{State, Path, WebSocketUpgrade},
     response::Response,
 };
-use futures::{sink::SinkExt, stream::StreamExt};
+use futures::stream::StreamExt;
 use std::sync::Arc;
 use uuid::Uuid;
 
