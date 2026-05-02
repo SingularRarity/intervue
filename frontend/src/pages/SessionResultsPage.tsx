@@ -152,9 +152,7 @@ export default function SessionResultsPage() {
         <div className="card">
           <h2 className="text-xl font-semibold text-white mb-4">Detailed Feedback</h2>
           <div className="prose prose-invert max-w-none">
-            {report.detailed_feedback.split('
-
-').map((paragraph: string, i: number) => (
+            {report.detailed_feedback.split('\n\n').map((paragraph: string, i: number) => (
               <p key={i} className="text-dark-300 leading-relaxed mb-4">{paragraph}</p>
             ))}
           </div>
