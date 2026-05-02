@@ -1,0 +1,37 @@
+[package]
+name = "ai-interview-platform"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = { version = "0.7", features = ["ws", "multipart"] }
+tokio = { version = "1.35", features = ["full"] }
+tower = { version = "0.4", features = ["full"] }
+tower-http = { version = "0.5", features = ["cors", "trace", "fs"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "uuid", "chrono", "migrate"] }
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1.6", features = ["serde", "v4"] }
+jsonwebtoken = "9.2"
+bcrypt = "0.15"
+reqwest = { version = "0.11", features = ["json", "multipart", "stream"] }
+anyhow = "1.0"
+thiserror = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+dotenvy = "0.15"
+validator = { version = "0.16", features = ["derive"] }
+argon2 = "0.5"
+rand = "0.8"
+base64 = "0.21"
+futures = "0.3"
+tokio-util = { version = "0.7", features = ["codec"] }
+bytes = "1.5"
+async-trait = "0.1"
+redis = { version = "0.24", features = ["tokio-comp", "connection-manager"] }
+lettre = { version = "0.11", features = ["tokio1", "tokio1-native-tls"] }
+handlebars = "5.0"
+
+[dev-dependencies]
+tokio-test = "0.4"
