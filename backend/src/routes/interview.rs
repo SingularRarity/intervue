@@ -168,7 +168,7 @@ pub async fn create_candidate(
     let candidate = sqlx::query_as::<_, Candidate>(
         r#"
         INSERT INTO candidates 
-        (id, tenant_id, name, email, phone, resume_text, skills, experience_years, current_role, notes, created_at, updated_at)
+        (id, tenant_id, name, email, phone, resume_text, skills, experience_years, current_position, notes, created_at, updated_at)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
         RETURNING *
         "#
@@ -181,7 +181,7 @@ pub async fn create_candidate(
     .bind(&req.resume_text)
     .bind(&req.skills)
     .bind(req.experience_years)
-    .bind(&req.current_role)
+    .bind(&req.current_position)
     .bind(&req.notes)
     .bind(Utc::now())
     .bind(Utc::now())

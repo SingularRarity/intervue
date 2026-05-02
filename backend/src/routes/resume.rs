@@ -15,7 +15,7 @@ pub struct ParsedResume {
     pub name: Option<String>,
     pub email: Option<String>,
     pub phone: Option<String>,
-    pub current_role: Option<String>,
+    pub current_position: Option<String>,
     pub experience_years: Option<f32>,
     pub skills: Vec<String>,
     pub summary: Option<String>,
@@ -42,7 +42,7 @@ pub async fn parse_resume(
     let prompt = format!(
         "Extract structured candidate information from the following resume text. \
         Return a JSON object with these fields: \
-        name (string), email (string), phone (string), current_role (string), \
+        name (string), email (string), phone (string), current_position (string), \
         experience_years (number), skills (array of strings), summary (string). \
         Use null for missing fields. Resume:\n\n{}",
         req.resume_text

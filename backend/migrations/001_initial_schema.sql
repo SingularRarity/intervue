@@ -48,7 +48,7 @@ CREATE TABLE candidates (
     resume_text TEXT,
     skills TEXT[] DEFAULT '{}',
     experience_years NUMERIC(4,1),
-    current_role VARCHAR(200),
+    current_position VARCHAR(200),
     notes TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()

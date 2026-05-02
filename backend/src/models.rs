@@ -152,7 +152,7 @@ pub struct Candidate {
     pub resume_text: Option<String>,
     pub skills: Vec<String>,
     pub experience_years: Option<f32>,
-    pub current_role: Option<String>,
+    pub current_position: Option<String>,
     pub notes: Option<String>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -168,7 +168,7 @@ pub struct CreateCandidateRequest {
     pub resume_text: Option<String>,
     pub skills: Vec<String>,
     pub experience_years: Option<f32>,
-    pub current_role: Option<String>,
+    pub current_position: Option<String>,
     pub notes: Option<String>,
 }
 
