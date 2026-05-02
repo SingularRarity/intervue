@@ -4,6 +4,24 @@ All notable changes to InterviewAI are documented here.
 
 ---
 
+## [Unreleased] — Build & Infrastructure Fixes (2026-05-03)
+
+### Fixed
+- **Rust image** bumped from 1.75 → 1.88 to satisfy `edition2024` dependencies (`cpufeatures`, `home`, `time`)
+- **Docker frontend** switched from `npm ci` to `npm install` (no lock file in repo)
+- **Docker backend** migrations folder now copied into builder stage so `sqlx::migrate!()` compiles
+- **TypeScript** `noUnusedLocals` / `noUnusedParameters` relaxed; `vite-env.d.ts` added for `ImportMeta.env`
+- **`SessionResultsPage`** literal newline in `.split('...')` replaced with `\n\n` escape
+- **Rust — 29 compile errors** resolved:
+  - `SessionSummary` missing `#[derive(sqlx::FromRow)]`
+  - `argon2` password verify called with `&str` instead of `&[u8]`
+  - `validator::Validate` trait not in scope in route files
+  - `sqlx::query!` macros replaced with runtime queries in 8 new route files (no DB at compile time)
+  - Unused imports removed across services and websocket handler
+- **`current_role`** renamed to `current_position` in migration SQL and all Rust/query code (reserved PostgreSQL keyword)
+
+---
+
 ## [Unreleased] — Q4 2026 Features
 
 ### Added
