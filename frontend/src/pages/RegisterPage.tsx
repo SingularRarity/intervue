@@ -53,7 +53,7 @@ export default function RegisterPage() {
           <div className="bg-white border border-dark-200 rounded-xl p-8">
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-dark-700 mb-1.5">Company Name</label>
+                <label className="block text-[11px] font-bold uppercase tracking-[0.08em] text-dark-400 mb-1.5">Company Name</label>
                 <input
                   type="text"
                   value={form.company_name}
@@ -65,7 +65,7 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-dark-700 mb-1.5">Email</label>
+                <label className="block text-[11px] font-bold uppercase tracking-[0.08em] text-dark-400 mb-1.5">Email</label>
                 <input
                   type="email"
                   value={form.email}
@@ -77,7 +77,7 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-dark-700 mb-1.5">Password</label>
+                <label className="block text-[11px] font-bold uppercase tracking-[0.08em] text-dark-400 mb-1.5">Password</label>
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
@@ -100,7 +100,7 @@ export default function RegisterPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-dark-700 mb-1.5">Industry</label>
+                  <label className="block text-[11px] font-bold uppercase tracking-[0.08em] text-dark-400 mb-1.5">Industry</label>
                   <select
                     value={form.industry}
                     onChange={(e) => setForm({ ...form, industry: e.target.value })}
@@ -116,7 +116,7 @@ export default function RegisterPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-dark-700 mb-1.5">Company Size</label>
+                  <label className="block text-[11px] font-bold uppercase tracking-[0.08em] text-dark-400 mb-1.5">Company Size</label>
                   <select
                     value={form.company_size}
                     onChange={(e) => setForm({ ...form, company_size: e.target.value })}
@@ -133,7 +133,7 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-dark-700 mb-1.5">
+                <label className="block text-[11px] font-bold uppercase tracking-[0.08em] text-dark-400 mb-1.5">
                   Website <span className="text-dark-400 font-normal">(optional)</span>
                 </label>
                 <input
