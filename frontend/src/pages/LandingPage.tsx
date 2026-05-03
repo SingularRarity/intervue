@@ -8,7 +8,7 @@ export default function LandingPage() {
       <header className="bg-[#0f172a]/95 backdrop-blur-md sticky top-0 z-50 border-b border-white/10">
         <nav className="flex justify-between items-center px-8 h-16 w-full max-w-[1280px] mx-auto">
           <div className="flex items-center gap-8">
-            <span className="font-display italic text-white text-xl tracking-tight">InterviewAI</span>
+            <span className="font-display italic text-white text-xl tracking-tight">Intervue</span>
             <div className="hidden md:flex gap-6">
               <a href="#features" className="text-white/70 hover:text-white transition-colors text-sm font-medium">Features</a>
               <a href="#how-it-works" className="text-white/70 hover:text-white transition-colors text-sm font-medium">How It Works</a>
@@ -51,7 +51,7 @@ export default function LandingPage() {
               </h1>
 
               <p className="text-white/55 text-[17px] leading-relaxed max-w-lg">
-                InterviewAI conducts structured, voice-based interviews using Claude and Sarvam AI — then delivers an objective analysis report so your team can hire faster and fairer.
+                Intervue conducts structured, voice-based interviews using Claude and Sarvam AI — then delivers an objective scorecard so your team can hire faster and fairer.
               </p>
 
               <div className="flex flex-wrap gap-3 pt-2">
@@ -246,7 +246,7 @@ export default function LandingPage() {
                 Try it free for 15 days.<br />Tell us what to fix.
               </h2>
               <p className="text-[#0f172a]/60 text-[17px] max-w-xl relative z-10 leading-relaxed">
-                We're building InterviewAI in the open with a small group of Indian startups. You get full access, and we get honest feedback. That's the deal.
+                We're building Intervue in the open with a small group of Indian startups. You get full access, and we get honest feedback. That's the deal.
               </p>
               <div className="flex flex-wrap gap-4 relative z-10">
                 <Link
@@ -274,7 +274,7 @@ export default function LandingPage() {
 
       <footer className="border-t border-white/10 py-8">
         <div className="max-w-[1280px] mx-auto px-8 flex items-center justify-between flex-wrap gap-4">
-          <span className="font-display italic text-white text-[16px]">InterviewAI</span>
+          <span className="font-display italic text-white text-[16px]">Intervue</span>
           <div className="flex items-center gap-6 text-white/20 text-[11px]">
             <a href="mailto:founders@interviewai.dev" className="hover:text-white/50 transition-colors">founders@interviewai.dev</a>
             <span>Built with Sarvam AI & Claude</span>

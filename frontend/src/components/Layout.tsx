@@ -50,7 +50,7 @@ export default function Layout() {
         {/* Logo */}
         <div className="px-6 pt-8 pb-10">
           <span className="font-display text-[19px] text-white italic tracking-tight leading-none">
-            InterviewAI
+            Intervue
           </span>
           <p className="text-white/30 text-[10px] uppercase tracking-[0.15em] mt-1">Enterprise Suite</p>
         </div>

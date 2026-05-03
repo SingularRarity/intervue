@@ -39,7 +39,7 @@ export default function RegisterPage() {
       {/* Minimal nav */}
       <nav className="px-8 py-5 border-b border-dark-200 bg-white">
         <Link to="/" className="font-display text-[17px] text-dark-900 leading-none">
-          Interview<span className="text-primary-500">AI</span>
+          Inter<span className="text-primary-500">vue</span>
         </Link>
       </nav>
 

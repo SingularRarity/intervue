@@ -81,7 +81,7 @@ export default function CandidatePortalPage() {
           {info.branding.logo_url ? (
             <img src={info.branding.logo_url} alt={company} className="h-7 object-contain" />
           ) : (
-            <span className="font-display italic text-white text-lg tracking-tight">InterviewAI</span>
+            <span className="font-display italic text-white text-lg tracking-tight">Intervue</span>
           )}
           <span className="w-px h-4 bg-white/20" />
           <span className="text-white/50 text-[10px] uppercase tracking-widest">Candidate Portal</span>
@@ -163,7 +163,7 @@ export default function CandidatePortalPage() {
       </main>
 
       <footer className="py-8 px-6 text-center border-t border-dark-200/50">
-        <p className="text-[10px] uppercase tracking-widest text-dark-300">© 2024 InterviewAI Systems. Precision Engineered.</p>
+        <p className="text-[10px] uppercase tracking-widest text-dark-300">© 2026 Intervue by SingularRarityLabs.</p>
         <div className="flex justify-center gap-6 mt-3">
           {['Help', 'Support', 'Privacy'].map((l) => (
             <a key={l} href="#" className="text-[10px] uppercase tracking-widest text-dark-300 hover:text-dark-700 transition-colors">{l}</a>

@@ -35,7 +35,7 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="z-10">
           <Link to="/" className="font-display italic text-white text-xl tracking-tight">
-            InterviewAI
+            Intervue
           </Link>
         </div>
 
@@ -94,7 +94,7 @@ export default function LoginPage() {
           {/* Mobile logo */}
           <div className="lg:hidden">
             <Link to="/" className="font-display italic text-dark-900 text-xl tracking-tight">
-              InterviewAI
+              Intervue
             </Link>
           </div>
 

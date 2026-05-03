@@ -1,0 +1,7 @@
+playwright==1.44.0
+requests==2.32.3
+pydub==0.25.1
+Pillow==10.4.0
+python-dotenv==1.0.1
+psycopg2-binary==2.9.9
+bcrypt==4.1.3
