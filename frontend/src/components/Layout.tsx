@@ -45,8 +45,8 @@ export default function Layout() {
 
   return (
     <div className="flex h-screen bg-canvas">
-      {/* Sidebar — 280px fixed, slate-900 */}
-      <aside className="w-[280px] shrink-0 bg-[#0f172a] flex flex-col fixed left-0 top-0 h-screen z-50 border-r border-white/10">
+      {/* Sidebar — 220px fixed, #1E2235 per DESIGN.md */}
+      <aside className="w-[220px] shrink-0 bg-[#1E2235] flex flex-col fixed left-0 top-0 h-screen z-50 border-r border-white/10">
         {/* Logo */}
         <div className="px-6 pt-8 pb-10">
           <span className="font-display text-[19px] text-white italic tracking-tight leading-none">
@@ -131,7 +131,7 @@ export default function Layout() {
       </aside>
 
       {/* Main content — offset by sidebar width */}
-      <main className="ml-[280px] flex-1 overflow-auto bg-canvas">
+      <main className="ml-[220px] flex-1 overflow-auto bg-canvas">
         <div className="p-8 max-w-7xl mx-auto">
           <Outlet />
         </div>
