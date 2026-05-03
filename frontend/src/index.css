@@ -106,17 +106,16 @@
     @apply badge bg-dark-100 text-dark-600;
   }
 
-  /* Sidebar nav item — left-border active pattern */
+  /* Sidebar nav item — spec: 13px slate-400 text, active = white on slate-800 bg */
   .nav-item {
-    @apply flex items-center gap-3 px-4 py-2.5 text-sm
-           text-white/60 hover:bg-white/5 hover:text-white
-           transition-all duration-150;
+    @apply flex items-center gap-3 px-4 py-2 text-[13px]
+           text-white/50 hover:bg-white/5 hover:text-white/80
+           transition-all duration-150 rounded-sm mx-2;
   }
 
   .nav-item-active {
-    @apply flex items-center gap-3 px-4 py-2.5 text-sm
-           bg-white/10 text-white font-medium
-           border-l-2 border-primary-500;
+    @apply flex items-center gap-3 px-4 py-2 text-[13px]
+           bg-dark-800 text-white font-medium rounded-sm mx-2;
   }
 
   /* Section label */
