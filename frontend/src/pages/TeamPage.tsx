@@ -70,14 +70,14 @@ export default function TeamPage() {
       <div className="flex items-center gap-3 mb-8">
         <Users className="w-7 h-7 text-primary-400" />
         <div>
-          <h1 className="text-2xl font-bold text-white">Team</h1>
+          <h1 className="text-2xl font-bold text-dark-900">Team</h1>
           <p className="text-dark-400 text-sm">Invite colleagues to collaborate on interviews</p>
         </div>
       </div>
 
       {/* Invite Form */}
-      <div className="bg-dark-900 rounded-2xl border border-dark-800 p-6 mb-6">
-        <h2 className="text-white font-semibold mb-4 flex items-center gap-2">
+      <div className="bg-white border border-dark-200 rounded-2xl p-6 mb-6">
+        <h2 className="text-dark-900 font-semibold mb-4 flex items-center gap-2">
           <UserPlus className="w-4 h-4 text-primary-400" />
           Invite Member
         </h2>
@@ -87,13 +87,13 @@ export default function TeamPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="colleague@company.com"
-            className="flex-1 min-w-48 bg-dark-800 border border-dark-700 rounded-xl px-4 py-2.5 text-white placeholder-dark-500 focus:outline-none focus:border-primary-500"
+            className="input-field flex-1 min-w-48"
             required
           />
           <select
             value={role}
             onChange={(e) => setRole(e.target.value)}
-            className="bg-dark-800 border border-dark-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-primary-500"
+            className="input-field w-auto"
           >
             <option value="viewer">Viewer</option>
             <option value="recruiter">Recruiter</option>
@@ -102,7 +102,7 @@ export default function TeamPage() {
           <button
             type="submit"
             disabled={inviting}
-            className="bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white px-5 py-2.5 rounded-xl font-medium transition-colors"
+            className="btn-primary"
           >
             {inviting ? 'Inviting...' : 'Invite'}
           </button>
@@ -111,10 +111,10 @@ export default function TeamPage() {
       </div>
 
       {/* Members List */}
-      <div className="bg-dark-900 rounded-2xl border border-dark-800 overflow-hidden">
+      <div className="bg-white border border-dark-200 rounded-2xl overflow-hidden">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-dark-800">
+            <tr className="border-b border-dark-200">
               <th className="text-left px-6 py-4 text-dark-400 text-sm font-medium">Member</th>
               <th className="text-left px-6 py-4 text-dark-400 text-sm font-medium">Role</th>
               <th className="text-left px-6 py-4 text-dark-400 text-sm font-medium">Status</th>
@@ -138,8 +138,8 @@ export default function TeamPage() {
               members.map((member) => {
                 const Icon = ROLE_ICONS[member.role] ?? Users
                 return (
-                  <tr key={member.id} className="border-b border-dark-800 last:border-0">
-                    <td className="px-6 py-4 text-white">{member.email}</td>
+                  <tr key={member.id} className="border-b border-dark-200 last:border-0">
+                    <td className="px-6 py-4 text-dark-900">{member.email}</td>
                     <td className="px-6 py-4">
                       <span className="flex items-center gap-1.5 text-dark-300 text-sm">
                         <Icon className="w-3.5 h-3.5 text-primary-400" />

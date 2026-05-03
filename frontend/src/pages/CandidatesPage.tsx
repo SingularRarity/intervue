@@ -94,7 +94,7 @@ export default function CandidatesPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">Candidates</h1>
+          <h1 className="text-3xl font-bold text-dark-900">Candidates</h1>
           <p className="text-dark-400 mt-1">Manage candidates and start interviews</p>
         </div>
         <button
@@ -125,7 +125,7 @@ export default function CandidatesPage() {
               </button>
             </div>
 
-            <h3 className="text-lg font-semibold text-white mb-1">{candidate.name}</h3>
+            <h3 className="text-lg font-semibold text-dark-900 mb-1">{candidate.name}</h3>
             <p className="text-dark-400 text-sm mb-4">{candidate.current_role || 'No role specified'}</p>
 
             <div className="space-y-2 text-sm text-dark-400 mb-4">
@@ -149,12 +149,12 @@ export default function CandidatesPage() {
 
             <div className="flex flex-wrap gap-2 mb-4">
               {candidate.skills?.slice(0, 5).map((skill: string) => (
-                <span key={skill} className="px-2 py-1 bg-dark-800 rounded-md text-xs text-dark-300">
+                <span key={skill} className="px-2 py-1 bg-dark-100 rounded-md text-xs text-dark-700">
                   {skill}
                 </span>
               ))}
               {candidate.skills?.length > 5 && (
-                <span className="px-2 py-1 bg-dark-800 rounded-md text-xs text-dark-500">
+                <span className="px-2 py-1 bg-dark-100 rounded-md text-xs text-dark-600">
                   +{candidate.skills.length - 5}
                 </span>
               )}
@@ -174,7 +174,7 @@ export default function CandidatesPage() {
       {candidates?.length === 0 && (
         <div className="text-center py-16">
           <User className="w-16 h-16 text-dark-700 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-white mb-2">No candidates yet</h3>
+          <h3 className="text-xl font-semibold text-dark-900 mb-2">No candidates yet</h3>
           <p className="text-dark-400 mb-6">Add your first candidate to start conducting interviews</p>
           <button onClick={() => setShowModal(true)} className="btn-primary">
             Add Candidate

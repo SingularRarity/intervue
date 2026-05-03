@@ -1,12 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import {
-  Mic, Users, FileText, TrendingUp, TrendingDown, Clock,
+  Mic, FileText, TrendingUp, Clock,
   ArrowRight, Award, CheckCircle, XCircle, Loader2,
-  Filter, Download, MoreVertical,
+  Filter, Download, MoreVertical, Key,
 } from 'lucide-react'
 import { analyticsApi, interviewApi } from '@/lib/api'
 import { formatDate, getScoreColor } from '@/lib/utils'
+import { useAuthStore } from '@/lib/store'
 
 function CandidateAvatar({ name }: { name: string }) {
   const initials = name
@@ -48,6 +49,9 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function Dashboard() {
+  const { tenant } = useAuthStore()
+  const needsApiKeys = !tenant?.has_claude_key || !tenant?.has_sarvam_key
+
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: () => analyticsApi.getDashboard().then(r => r.data),
@@ -68,6 +72,22 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
+      {/* API keys nudge */}
+      {needsApiKeys && (
+        <div className="flex items-center justify-between gap-4 px-5 py-4 bg-amber-50 border border-amber-200 rounded-xl">
+          <div className="flex items-center gap-3">
+            <Key className="w-5 h-5 text-amber-500 shrink-0" />
+            <p className="text-sm text-amber-800">
+              <span className="font-semibold">Add your API keys to start conducting interviews.</span>{' '}
+              You need a Claude key and a Sarvam key to use the AI interviewer.
+            </p>
+          </div>
+          <Link to="/settings" className="btn-secondary shrink-0 text-xs py-1.5 px-3">
+            Go to Settings
+          </Link>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -91,9 +111,9 @@ export default function Dashboard() {
         <div className="bg-white border border-dark-200 rounded-xl p-6">
           <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-dark-400 mb-1">Total Active</p>
           <p className="text-4xl font-semibold text-dark-900 tracking-tight mt-2">{stats?.total_interviews ?? 0}</p>
-          <div className="mt-2 flex items-center gap-1 text-primary-600 text-xs">
+          <div className="mt-2 flex items-center gap-1 text-dark-400 text-xs">
             <TrendingUp className="w-3.5 h-3.5" />
-            12% from last month
+            All time
           </div>
         </div>
 
@@ -105,7 +125,7 @@ export default function Dashboard() {
           </p>
           <div className="mt-2 flex items-center gap-1 text-dark-400 text-xs">
             <Award className="w-3.5 h-3.5" />
-            Sector benchmark: 76
+            Out of 100
           </div>
         </div>
 
@@ -114,7 +134,7 @@ export default function Dashboard() {
           <p className="text-4xl font-semibold text-dark-900 tracking-tight mt-2">{stats?.completed_interviews ?? 0}</p>
           <div className="mt-2 flex items-center gap-1 text-dark-400 text-xs">
             <Clock className="w-3.5 h-3.5" />
-            Avg. response: 4h
+            Awaiting review
           </div>
         </div>
 

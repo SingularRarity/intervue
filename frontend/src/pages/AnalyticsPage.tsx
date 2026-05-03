@@ -41,7 +41,7 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-white">Analytics</h1>
+        <h1 className="text-3xl font-bold text-dark-900">Analytics</h1>
         <p className="text-dark-400 mt-1">Insights into your hiring pipeline</p>
       </div>
 
@@ -53,7 +53,7 @@ export default function AnalyticsPage() {
               <BarChart3 className="w-5 h-5 text-primary-400" />
             </div>
             <div>
-              <div className="text-2xl font-bold text-white">{dashboard?.total_interviews || 0}</div>
+              <div className="text-2xl font-bold text-dark-900">{dashboard?.total_interviews || 0}</div>
               <div className="text-sm text-dark-500">Total Interviews</div>
             </div>
           </div>
@@ -65,7 +65,7 @@ export default function AnalyticsPage() {
               <TrendingUp className="w-5 h-5 text-emerald-400" />
             </div>
             <div>
-              <div className="text-2xl font-bold text-white">{dashboard?.completed_interviews || 0}</div>
+              <div className="text-2xl font-bold text-dark-900">{dashboard?.completed_interviews || 0}</div>
               <div className="text-sm text-dark-500">Completed</div>
             </div>
           </div>
@@ -77,7 +77,7 @@ export default function AnalyticsPage() {
               <Users className="w-5 h-5 text-amber-400" />
             </div>
             <div>
-              <div className="text-2xl font-bold text-white">{dashboard?.candidates_this_month || 0}</div>
+              <div className="text-2xl font-bold text-dark-900">{dashboard?.candidates_this_month || 0}</div>
               <div className="text-sm text-dark-500">This Month</div>
             </div>
           </div>
@@ -89,7 +89,7 @@ export default function AnalyticsPage() {
               <Calendar className="w-5 h-5 text-purple-400" />
             </div>
             <div>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-dark-900">
                 {dashboard?.average_score ? dashboard.average_score.toFixed(1) : '0'}
               </div>
               <div className="text-sm text-dark-500">Avg Score</div>
@@ -102,7 +102,7 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Status Distribution */}
         <div className="card">
-          <h3 className="text-lg font-semibold text-white mb-6">Interview Status Distribution</h3>
+          <h3 className="text-lg font-semibold text-dark-900 mb-6">Interview Status Distribution</h3>
           <div className="h-64">
             {statusData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
@@ -136,7 +136,7 @@ export default function AnalyticsPage() {
 
         {/* Top Skills */}
         <div className="card">
-          <h3 className="text-lg font-semibold text-white mb-6">Top Candidate Skills</h3>
+          <h3 className="text-lg font-semibold text-dark-900 mb-6">Top Candidate Skills</h3>
           <div className="h-64">
             {skillData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
@@ -162,7 +162,7 @@ export default function AnalyticsPage() {
 
       {/* Date Range Analytics */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-white mb-4">Session Analytics</h3>
+        <h3 className="text-lg font-semibold text-dark-900 mb-4">Session Analytics</h3>
         <div className="flex items-center gap-4 mb-6">
           <input
             type="date"

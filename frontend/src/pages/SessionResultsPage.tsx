@@ -53,7 +53,7 @@ export default function SessionResultsPage() {
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
-          <h1 className="text-3xl font-bold text-white">Interview Results</h1>
+          <h1 className="text-3xl font-bold text-dark-900">Interview Results</h1>
           <p className="text-dark-400">{session?.candidate_name} - {session?.template_title}</p>
         </div>
       </div>
@@ -62,7 +62,7 @@ export default function SessionResultsPage() {
       {report && (
         <div className="card">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-white">Overall Assessment</h2>
+            <h2 className="text-xl font-semibold text-dark-900">Overall Assessment</h2>
             <span className={`px-4 py-2 rounded-xl text-sm font-bold border ${getScoreBg(report.overall_score)} ${getScoreColor(report.overall_score)}`}>
               {report.recommendation}
             </span>
@@ -85,7 +85,7 @@ export default function SessionResultsPage() {
             {report.skill_assessments.map((skill: any, index: number) => (
               <div key={index} className="flex items-center gap-4">
                 <div className="w-32 text-sm font-medium text-dark-300">{skill.skill}</div>
-                <div className="flex-1 h-2 bg-dark-800 rounded-full overflow-hidden">
+                <div className="flex-1 h-2 bg-dark-200 rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-500 ${
                       skill.score >= 80 ? 'bg-emerald-500' :
@@ -118,7 +118,7 @@ export default function SessionResultsPage() {
           <div className="card">
             <div className="flex items-center gap-2 mb-4">
               <ThumbsUp className="w-5 h-5 text-emerald-400" />
-              <h3 className="text-lg font-semibold text-white">Strengths</h3>
+              <h3 className="text-lg font-semibold text-dark-900">Strengths</h3>
             </div>
             <ul className="space-y-2">
               {report.strengths.map((s: string, i: number) => (
@@ -133,7 +133,7 @@ export default function SessionResultsPage() {
           <div className="card">
             <div className="flex items-center gap-2 mb-4">
               <ThumbsDown className="w-5 h-5 text-red-400" />
-              <h3 className="text-lg font-semibold text-white">Areas for Improvement</h3>
+              <h3 className="text-lg font-semibold text-dark-900">Areas for Improvement</h3>
             </div>
             <ul className="space-y-2">
               {report.weaknesses.map((w: string, i: number) => (
@@ -166,7 +166,7 @@ export default function SessionResultsPage() {
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {session.transcript.map((msg: any, i: number) => (
               <div key={i} className={`p-3 rounded-xl ${
-                msg.role === 'interviewer' ? 'bg-dark-800/50 border border-dark-700' : 'bg-primary-600/5'
+                msg.role === 'interviewer' ? 'bg-dark-100 border border-dark-200' : 'bg-primary-50'
               }`}>
                 <span className={`text-xs font-medium ${
                   msg.role === 'interviewer' ? 'text-primary-400' : 'text-emerald-400'
@@ -246,7 +246,7 @@ export default function SessionResultsPage() {
 
 function ScoreCard({ label, score, icon: Icon }: { label: string; score: number; icon: any }) {
   return (
-    <div className="text-center p-4 bg-dark-800/50 rounded-xl">
+    <div className="text-center p-4 bg-dark-50 border border-dark-200 rounded-xl">
       <Icon className={`w-6 h-6 mx-auto mb-2 ${getScoreColor(score)}`} />
       <div className={`text-3xl font-bold ${getScoreColor(score)}`}>{score.toFixed(0)}</div>
       <div className="text-sm text-dark-400 mt-1">{label}</div>

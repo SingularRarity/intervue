@@ -8,9 +8,9 @@ import {
   LogOut,
   UserPlus,
   Plug,
-  HelpCircle,
   MessageCircle,
   Plus,
+  ExternalLink,
 } from 'lucide-react'
 import { useAuthStore } from '@/lib/store'
 
@@ -97,13 +97,25 @@ export default function Layout() {
 
         {/* Footer links + user */}
         <div className="mt-4 pt-4 border-t border-white/5 pb-4 space-y-0.5">
-          <a href="#" className="flex items-center gap-3 px-4 py-2 text-white/30 hover:text-white text-xs uppercase tracking-widest transition-colors">
-            <HelpCircle className="w-4 h-4 shrink-0" />
-            Help
-          </a>
-          <a href="#" className="flex items-center gap-3 px-4 py-2 text-white/30 hover:text-white text-xs uppercase tracking-widest transition-colors">
+          {/* Alpha feedback CTA */}
+          <div className="mx-3 mb-3 p-3 rounded-lg bg-primary-500/10 border border-primary-500/20">
+            <p className="text-primary-300 text-[11px] font-semibold mb-0.5">Alpha Program</p>
+            <p className="text-white/35 text-[10px] leading-relaxed mb-2">Help us improve. Share what's broken or missing.</p>
+            <a
+              href="mailto:founders@interviewai.dev?subject=InterviewAI%20Feedback"
+              className="flex items-center gap-1 text-primary-400 hover:text-primary-300 text-[10px] font-bold uppercase tracking-wider transition-colors"
+            >
+              Send Feedback
+              <ExternalLink className="w-2.5 h-2.5" />
+            </a>
+          </div>
+
+          <a
+            href="mailto:founders@interviewai.dev"
+            className="flex items-center gap-3 px-4 py-2 text-white/30 hover:text-white text-xs uppercase tracking-widest transition-colors"
+          >
             <MessageCircle className="w-4 h-4 shrink-0" />
-            Support
+            Contact Support
           </a>
 
           {/* User row */}

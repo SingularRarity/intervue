@@ -10,6 +10,7 @@ pub mod branding;
 pub mod proctoring;
 pub mod coding;
 pub mod candidate_portal;
+pub mod oauth;
 
 use axum::{http::StatusCode, response::Json};
 use serde_json::json;

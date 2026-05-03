@@ -42,6 +42,8 @@ pub async fn auth_middleware(
         || (path == "/api/v1/tenants" && request.method() == axum::http::Method::POST)
         || path == "/api/v1/tenants/login"
         || path.starts_with("/api/v1/candidate-portal/")
+        || path == "/api/v1/oauth/google"
+        || path == "/api/v1/oauth/google/callback"
     {
         return Ok(next.run(request).await);
     }

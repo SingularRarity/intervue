@@ -68,6 +68,9 @@ async fn main() -> anyhow::Result<()> {
         // Public: tenant auth
         .route("/api/v1/tenants", post(routes::tenant::create_tenant))
         .route("/api/v1/tenants/login", post(routes::tenant::login_tenant))
+        // Public: Google OAuth
+        .route("/api/v1/oauth/google", get(routes::oauth::google_auth))
+        .route("/api/v1/oauth/google/callback", get(routes::oauth::google_callback))
         // Public: candidate portal (token-based, no JWT)
         .route("/api/v1/candidate-portal/:token", get(routes::candidate_portal::get_session_by_token))
         // Protected: tenant

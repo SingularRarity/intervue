@@ -67,14 +67,14 @@ export default function IntegrationsPage() {
       <div className="flex items-center gap-3 mb-8">
         <Plug className="w-7 h-7 text-primary-400" />
         <div>
-          <h1 className="text-2xl font-bold text-white">Integrations</h1>
+          <h1 className="text-2xl font-bold text-dark-900">Integrations</h1>
           <p className="text-dark-400 text-sm">Connect your ATS and configure Enterprise SSO</p>
         </div>
       </div>
 
       {/* ATS Section */}
-      <div className="bg-dark-900 rounded-2xl border border-dark-800 p-6 mb-6">
-        <h2 className="text-white font-semibold mb-1 flex items-center gap-2">
+      <div className="bg-white border border-dark-200 rounded-2xl p-6 mb-6">
+        <h2 className="text-dark-900 font-semibold mb-1 flex items-center gap-2">
           <Link2 className="w-4 h-4 text-primary-400" />
           ATS Integration
         </h2>
@@ -83,7 +83,7 @@ export default function IntegrationsPage() {
         </p>
         <form onSubmit={saveAts} className="space-y-4">
           <div>
-            <label className="block text-dark-300 text-sm mb-1.5">
+            <label className="block text-dark-500 text-sm mb-1.5">
               Greenhouse Webhook URL
             </label>
             <input
@@ -91,11 +91,11 @@ export default function IntegrationsPage() {
               value={ats.greenhouse_webhook}
               onChange={(e) => setAts({ ...ats, greenhouse_webhook: e.target.value })}
               placeholder="https://hooks.greenhouse.io/..."
-              className="w-full bg-dark-800 border border-dark-700 rounded-xl px-4 py-2.5 text-white placeholder-dark-500 focus:outline-none focus:border-primary-500"
+              className="input-field"
             />
           </div>
           <div>
-            <label className="block text-dark-300 text-sm mb-1.5">
+            <label className="block text-dark-500 text-sm mb-1.5">
               Lever Webhook URL
             </label>
             <input
@@ -103,12 +103,12 @@ export default function IntegrationsPage() {
               value={ats.lever_webhook}
               onChange={(e) => setAts({ ...ats, lever_webhook: e.target.value })}
               placeholder="https://api.lever.co/v1/..."
-              className="w-full bg-dark-800 border border-dark-700 rounded-xl px-4 py-2.5 text-white placeholder-dark-500 focus:outline-none focus:border-primary-500"
+              className="input-field"
             />
           </div>
           <button
             type="submit"
-            className="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2"
+            className="btn-primary flex items-center gap-2"
           >
             {atsSaved && <CheckCircle className="w-4 h-4" />}
             {atsSaved ? 'Saved!' : 'Save ATS Config'}
@@ -117,9 +117,9 @@ export default function IntegrationsPage() {
       </div>
 
       {/* SSO Section */}
-      <div className="bg-dark-900 rounded-2xl border border-dark-800 p-6">
+      <div className="bg-white border border-dark-200 rounded-2xl p-6">
         <div className="flex items-center justify-between mb-1">
-          <h2 className="text-white font-semibold flex items-center gap-2">
+          <h2 className="text-dark-900 font-semibold flex items-center gap-2">
             <Shield className="w-4 h-4 text-primary-400" />
             Enterprise SSO
           </h2>
@@ -139,16 +139,16 @@ export default function IntegrationsPage() {
               onChange={(e) => setSso({ ...sso, enabled: e.target.checked })}
               className="w-4 h-4 accent-primary-600"
             />
-            <label htmlFor="sso-enabled" className="text-dark-300 text-sm">
+            <label htmlFor="sso-enabled" className="text-dark-600 text-sm">
               Enable SSO
             </label>
           </div>
           <div>
-            <label className="block text-dark-300 text-sm mb-1.5">Provider</label>
+            <label className="block text-dark-500 text-sm mb-1.5">Provider</label>
             <select
               value={sso.provider}
               onChange={(e) => setSso({ ...sso, provider: e.target.value })}
-              className="w-full bg-dark-800 border border-dark-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-primary-500"
+              className="input-field"
             >
               <option value="google">Google Workspace</option>
               <option value="github">GitHub</option>
@@ -157,31 +157,31 @@ export default function IntegrationsPage() {
           </div>
           {sso.provider !== 'saml' && (
             <div>
-              <label className="block text-dark-300 text-sm mb-1.5">OAuth Client ID</label>
+              <label className="block text-dark-500 text-sm mb-1.5">OAuth Client ID</label>
               <input
                 type="text"
                 value={sso.client_id}
                 onChange={(e) => setSso({ ...sso, client_id: e.target.value })}
                 placeholder="your-client-id"
-                className="w-full bg-dark-800 border border-dark-700 rounded-xl px-4 py-2.5 text-white placeholder-dark-500 focus:outline-none focus:border-primary-500"
+                className="input-field"
               />
             </div>
           )}
           {sso.provider === 'saml' && (
             <div>
-              <label className="block text-dark-300 text-sm mb-1.5">SAML Metadata URL</label>
+              <label className="block text-dark-500 text-sm mb-1.5">SAML Metadata URL</label>
               <input
                 type="url"
                 value={sso.saml_metadata_url}
                 onChange={(e) => setSso({ ...sso, saml_metadata_url: e.target.value })}
                 placeholder="https://your-idp.com/metadata"
-                className="w-full bg-dark-800 border border-dark-700 rounded-xl px-4 py-2.5 text-white placeholder-dark-500 focus:outline-none focus:border-primary-500"
+                className="input-field"
               />
             </div>
           )}
           <button
             type="submit"
-            className="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2"
+            className="btn-primary flex items-center gap-2"
           >
             {ssoSaved && <CheckCircle className="w-4 h-4" />}
             {ssoSaved ? 'Saved!' : 'Save SSO Config'}

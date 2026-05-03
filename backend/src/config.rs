@@ -9,6 +9,9 @@ pub struct Config {
     pub claude_base_url: String,
     pub redis_url: String,
     pub app_env: String,
+    pub google_client_id: Option<String>,
+    pub google_client_secret: Option<String>,
+    pub frontend_url: String,
 }
 
 impl Config {
@@ -28,6 +31,10 @@ impl Config {
             redis_url: std::env::var("REDIS_URL")
                 .unwrap_or_else(|_| "redis://localhost:6379".to_string()),
             app_env: std::env::var("APP_ENV").unwrap_or_else(|_| "development".to_string()),
+            google_client_id: std::env::var("GOOGLE_CLIENT_ID").ok(),
+            google_client_secret: std::env::var("GOOGLE_CLIENT_SECRET").ok(),
+            frontend_url: std::env::var("FRONTEND_URL")
+                .unwrap_or_else(|_| "http://localhost:5173".to_string()),
         })
     }
 }

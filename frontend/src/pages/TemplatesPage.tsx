@@ -121,7 +121,7 @@ export default function TemplatesPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">Interview Templates</h1>
+          <h1 className="text-3xl font-bold text-dark-900">Interview Templates</h1>
           <p className="text-dark-400 mt-1">Create and manage your interview templates</p>
         </div>
         <button
@@ -160,7 +160,7 @@ export default function TemplatesPage() {
               </div>
             </div>
 
-            <h3 className="text-lg font-semibold text-white mb-2">{template.title}</h3>
+            <h3 className="text-lg font-semibold text-dark-900 mb-2">{template.title}</h3>
             <p className="text-dark-400 text-sm mb-4 line-clamp-2">{template.description || 'No description'}</p>
 
             <div className="flex items-center gap-4 text-sm text-dark-500 mb-4">
@@ -178,12 +178,12 @@ export default function TemplatesPage() {
               <span className="badge-info">{template.interview_type}</span>
               <span className="badge-info">{languages.find(l => l.code === template.language)?.name || template.language}</span>
               {template.topics?.slice(0, 3).map((topic: string) => (
-                <span key={topic} className="px-2 py-1 bg-dark-800 rounded-md text-xs text-dark-400">
+                <span key={topic} className="px-2 py-1 bg-dark-100 rounded-md text-xs text-dark-700">
                   {topic}
                 </span>
               ))}
               {template.topics?.length > 3 && (
-                <span className="px-2 py-1 bg-dark-800 rounded-md text-xs text-dark-500">
+                <span className="px-2 py-1 bg-dark-100 rounded-md text-xs text-dark-600">
                   +{template.topics.length - 3}
                 </span>
               )}
@@ -195,7 +195,7 @@ export default function TemplatesPage() {
       {templates?.length === 0 && (
         <div className="text-center py-16">
           <FileText className="w-16 h-16 text-dark-700 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-white mb-2">No templates yet</h3>
+          <h3 className="text-xl font-semibold text-dark-900 mb-2">No templates yet</h3>
           <p className="text-dark-400 mb-6">Create your first interview template to get started</p>
           <button
             onClick={() => { resetForm(); setShowModal(true); }}

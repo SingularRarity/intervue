@@ -54,7 +54,7 @@ export default function SettingsPage() {
   return (
     <div className="space-y-8 max-w-3xl">
       <div>
-        <h1 className="text-3xl font-bold text-white">Settings</h1>
+        <h1 className="text-3xl font-bold text-dark-900">Settings</h1>
         <p className="text-dark-400 mt-1">Manage your account and API configurations</p>
       </div>
 
@@ -65,7 +65,7 @@ export default function SettingsPage() {
             <Building2 className="w-5 h-5 text-primary-400" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-white">Company Information</h2>
+            <h2 className="text-lg font-semibold text-dark-900">Company Information</h2>
             <p className="text-sm text-dark-500">Your organization details</p>
           </div>
         </div>
@@ -73,19 +73,19 @@ export default function SettingsPage() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-dark-400 mb-1">Company Name</label>
-            <p className="text-white font-medium">{currentTenant?.company_name}</p>
+            <p className="text-dark-900 font-medium">{currentTenant?.company_name}</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-dark-400 mb-1">Email</label>
-            <p className="text-white font-medium">{currentTenant?.email}</p>
+            <p className="text-dark-900 font-medium">{currentTenant?.email}</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-dark-400 mb-1">Industry</label>
-            <p className="text-white font-medium">{currentTenant?.industry || 'Not set'}</p>
+            <p className="text-dark-900 font-medium">{currentTenant?.industry || 'Not set'}</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-dark-400 mb-1">Company Size</label>
-            <p className="text-white font-medium">{currentTenant?.company_size || 'Not set'}</p>
+            <p className="text-dark-900 font-medium">{currentTenant?.company_size || 'Not set'}</p>
           </div>
         </div>
       </div>
@@ -97,7 +97,7 @@ export default function SettingsPage() {
             <Key className="w-5 h-5 text-primary-400" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-white">API Keys</h2>
+            <h2 className="text-lg font-semibold text-dark-900">API Keys</h2>
             <p className="text-sm text-dark-500">Configure your AI service credentials</p>
           </div>
         </div>

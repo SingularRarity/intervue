@@ -16,6 +16,9 @@ import TeamPage from './pages/TeamPage'
 import IntegrationsPage from './pages/IntegrationsPage'
 import CandidatePortalPage from './pages/CandidatePortalPage'
 import CodeAssessmentPage from './pages/CodeAssessmentPage'
+import NotFoundPage from './pages/NotFoundPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
+import OAuthCallbackPage from './pages/OAuthCallbackPage'
 
 function App() {
   const { token } = useAuthStore()
@@ -26,6 +29,8 @@ function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={token ? <Navigate to="/dashboard" /> : <LoginPage />} />
       <Route path="/register" element={token ? <Navigate to="/dashboard" /> : <RegisterPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
 
       {/* Public candidate portal — no auth required */}
       <Route path="/candidate/:token" element={<CandidatePortalPage />} />
@@ -54,6 +59,9 @@ function App() {
         <Route path="/team" element={<TeamPage />} />
         <Route path="/integrations" element={<IntegrationsPage />} />
       </Route>
+
+      {/* 404 catch-all */}
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )
 }
