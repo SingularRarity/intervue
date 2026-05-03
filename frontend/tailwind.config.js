@@ -38,7 +38,7 @@ export default {
         canvas: '#f8f7f5',
       },
       fontFamily: {
-        sans:    ['Inter', 'Geist', 'system-ui', 'sans-serif'],
+        sans:    ['Geist', 'system-ui', 'sans-serif'],
         display: ['Instrument Serif', 'Georgia', 'serif'],
         mono:    ['Geist Mono', 'JetBrains Mono', 'monospace'],
       },
