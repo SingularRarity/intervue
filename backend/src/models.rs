@@ -291,8 +291,186 @@ pub struct SessionSummary {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuthClaims {
-    pub sub: Uuid, // tenant_id
+    pub sub: Uuid, // tenant_id (legacy v1 token)
     pub email: String,
     pub exp: usize,
     pub iat: usize,
+}
+
+// ============== RBAC ENUMS ==============
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, sqlx::Type)]
+#[sqlx(type_name = "tenant_role", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
+pub enum TenantRole {
+    TenantAdmin,
+    Manager,
+    Interviewer,
+    Viewer,
+}
+
+impl std::fmt::Display for TenantRole {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TenantRole::TenantAdmin => write!(f, "tenant_admin"),
+            TenantRole::Manager => write!(f, "manager"),
+            TenantRole::Interviewer => write!(f, "interviewer"),
+            TenantRole::Viewer => write!(f, "viewer"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, sqlx::Type)]
+#[sqlx(type_name = "plan_tier", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
+pub enum PlanTier {
+    Free       = 0,
+    Starter    = 1,
+    Growth     = 2,
+    Enterprise = 3,
+}
+
+impl std::fmt::Display for PlanTier {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PlanTier::Free => write!(f, "free"),
+            PlanTier::Starter => write!(f, "starter"),
+            PlanTier::Growth => write!(f, "growth"),
+            PlanTier::Enterprise => write!(f, "enterprise"),
+        }
+    }
+}
+
+// ============== TENANT USER MODELS ==============
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct TenantUser {
+    pub id: Uuid,
+    pub tenant_id: Uuid,
+    pub email: String,
+    pub full_name: Option<String>,
+    pub role: TenantRole,
+    pub is_active: bool,
+    pub invited_by: Option<Uuid>,
+    pub accepted_at: Option<DateTime<Utc>>,
+    pub last_login_at: Option<DateTime<Utc>>,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TenantUserResponse {
+    pub id: Uuid,
+    pub email: String,
+    pub full_name: Option<String>,
+    pub role: TenantRole,
+    pub is_active: bool,
+    pub accepted_at: Option<DateTime<Utc>>,
+    pub created_at: DateTime<Utc>,
+}
+
+impl From<TenantUser> for TenantUserResponse {
+    fn from(u: TenantUser) -> Self {
+        Self {
+            id: u.id,
+            email: u.email,
+            full_name: u.full_name,
+            role: u.role,
+            is_active: u.is_active,
+            accepted_at: u.accepted_at,
+            created_at: u.created_at,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+pub struct InviteUserRequest {
+    #[validate(email)]
+    pub email: String,
+    pub full_name: Option<String>,
+    pub role: TenantRole,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateUserRoleRequest {
+    pub role: TenantRole,
+}
+
+// ============== GOD ADMIN MODELS ==============
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct GodAdmin {
+    pub id: Uuid,
+    pub email: String,
+    pub password_hash: String,
+    pub full_name: String,
+    pub is_active: bool,
+    pub last_login_at: Option<DateTime<Utc>>,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GodAdminLoginRequest {
+    pub email: String,
+    pub password: String,
+}
+
+// ============== SUBSCRIPTION / BILLING MODELS ==============
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct SubscriptionPlan {
+    pub tier: PlanTier,
+    pub display_name: String,
+    pub monthly_price_inr: i32,
+    pub max_seats: i32,
+    pub max_interviews_per_month: i32,
+    pub max_candidates: i32,
+    pub features: serde_json::Value,
+    pub rank: i16,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct TenantSubscription {
+    pub id: Uuid,
+    pub tenant_id: Uuid,
+    pub plan_tier: PlanTier,
+    pub status: String,
+    pub trial_ends_at: DateTime<Utc>,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+pub struct ContactRequest {
+    #[validate(length(min = 2, max = 120))]
+    pub name: String,
+    #[validate(email)]
+    pub email: String,
+    pub company: Option<String>,
+    pub request_type: String,
+    pub plan_interested: Option<String>,
+    #[validate(length(min = 10, max = 2000))]
+    pub message: String,
+}
+
+// ============== PERMISSION MODELS ==============
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct RolePermission {
+    pub id: Uuid,
+    pub module: String,
+    pub action: String,
+    pub role: TenantRole,
+    pub allowed: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdatePermissionRequest {
+    pub allowed: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct RoutePlanRequirement {
+    pub id: Uuid,
+    pub module: String,
+    pub action: String,
+    pub min_plan: PlanTier,
 }

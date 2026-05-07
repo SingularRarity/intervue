@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE tenant_users\n           SET is_active = true,\n               password_hash = $1,\n               full_name = COALESCE($2, full_name),\n               accepted_at = NOW(),\n               invite_token = NULL\n           WHERE id = $3",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Varchar",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ed9061bdf19c220e3134b7b0b0b3f9be1b1bfc3451ef3e66e768af26af37cc72"
+}

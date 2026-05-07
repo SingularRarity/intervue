@@ -1,0 +1,27 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE tenant_subscriptions SET plan_tier = $1, status = 'active', updated_at = NOW() WHERE tenant_id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "plan_tier",
+            "kind": {
+              "Enum": [
+                "free",
+                "starter",
+                "growth",
+                "enterprise"
+              ]
+            }
+          }
+        },
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "21fd7defea841244ad7e681c33e285d4a6a02b3c65f36bc6ab98ee6f0b7a58c2"
+}

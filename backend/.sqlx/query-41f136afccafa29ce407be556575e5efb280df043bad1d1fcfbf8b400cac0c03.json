@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO god_admins (id, email, password_hash, full_name, is_active)\n           VALUES ($1, $2, $3, $4, true)\n           ON CONFLICT (email) DO UPDATE\n             SET password_hash = EXCLUDED.password_hash,\n                 full_name = EXCLUDED.full_name,\n                 is_active = true",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Varchar",
+        "Varchar",
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "41f136afccafa29ce407be556575e5efb280df043bad1d1fcfbf8b400cac0c03"
+}

@@ -1,0 +1,32 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO tenant_users (id, tenant_id, email, full_name, role, is_active, invited_by, invite_token)\n           VALUES ($1, $2, $3, $4, $5, false, $6, $7)\n           ON CONFLICT (tenant_id, email) DO UPDATE\n             SET role = EXCLUDED.role,\n                 full_name = COALESCE(EXCLUDED.full_name, tenant_users.full_name),\n                 invite_token = EXCLUDED.invite_token,\n                 invited_by = EXCLUDED.invited_by",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Varchar",
+        "Varchar",
+        {
+          "Custom": {
+            "name": "tenant_role",
+            "kind": {
+              "Enum": [
+                "tenant_admin",
+                "manager",
+                "interviewer",
+                "viewer"
+              ]
+            }
+          }
+        },
+        "Uuid",
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "47641e6a89df772a4a6d81cbed65fc8a7152ab0506e65a07fe786e08ee8c3039"
+}

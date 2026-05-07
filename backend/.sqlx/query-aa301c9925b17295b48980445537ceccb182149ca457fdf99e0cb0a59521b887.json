@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT sp.max_seats, sp.max_interviews_per_month, sp.max_candidates,\n                  ts.plan_tier::TEXT as plan_tier\n           FROM tenant_subscriptions ts\n           JOIN subscription_plans sp ON sp.tier = ts.plan_tier\n           WHERE ts.tenant_id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "max_seats",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "max_interviews_per_month",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "max_candidates",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "plan_tier",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      null
+    ]
+  },
+  "hash": "aa301c9925b17295b48980445537ceccb182149ca457fdf99e0cb0a59521b887"
+}

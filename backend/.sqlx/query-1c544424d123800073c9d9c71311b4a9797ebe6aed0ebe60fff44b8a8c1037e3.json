@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO admin_audit_log (god_admin_id, action, target_type, target_id, payload) VALUES ($1, 'set_plan', 'tenant', $2, $3)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Jsonb"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "1c544424d123800073c9d9c71311b4a9797ebe6aed0ebe60fff44b8a8c1037e3"
+}

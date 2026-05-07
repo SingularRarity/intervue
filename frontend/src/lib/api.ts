@@ -62,13 +62,6 @@ export const interviewApi = {
     api.post(`/sessions/${id}/coding/submit`, data),
 }
 
-// Team API
-export const teamApi = {
-  list: () => api.get('/team'),
-  invite: (email: string, role: string) => api.post('/team/invite', { email, role }),
-  remove: (id: string) => api.delete(`/team/${id}`),
-}
-
 // Integrations API
 export const integrationsApi = {
   getAts: () => api.get('/integrations/ats'),
@@ -87,4 +80,48 @@ export const brandingApi = {
 export const analyticsApi = {
   getDashboard: () => api.get('/analytics/dashboard'),
   getSessions: (params?: unknown) => api.get('/analytics/sessions', { params }),
+}
+
+// Team API (updated — uses tenant_users)
+export const teamApi = {
+  list: () => api.get('/team'),
+  invite: (data: { email: string; full_name?: string; role: string }) => api.post('/team/invite', data),
+  updateRole: (id: string, role: string) => api.patch(`/team/${id}/role`, { role }),
+  remove: (id: string) => api.delete(`/team/${id}`),
+}
+
+// Billing API
+export const billingApi = {
+  listPlans: () => api.get('/billing/plans'),
+  getPlan: () => api.get('/billing/plan'),
+  getUsage: () => api.get('/billing/usage'),
+  contact: (data: { name: string; email: string; company?: string; request_type: string; plan_interested?: string; message: string }) =>
+    api.post('/billing/contact', data),
+}
+
+// God admin API (uses a separate axios instance with its own token management)
+const adminApi = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || '/api/v1',
+  headers: { 'Content-Type': 'application/json' },
+})
+
+adminApi.interceptors.request.use((config) => {
+  const token = useAuthStore.getState().token
+  if (token) config.headers.Authorization = `Bearer ${token}`
+  return config
+})
+
+export { adminApi }
+
+export const godAdminApi = {
+  login: (data: { email: string; password: string }) => adminApi.post('/admin/auth/login', data),
+  me: () => adminApi.get('/admin/auth/me'),
+  stats: () => adminApi.get('/admin/stats'),
+  listTenants: () => adminApi.get('/admin/tenants'),
+  setTenantPlan: (id: string, plan: string) => adminApi.put(`/admin/tenants/${id}/plan`, { plan }),
+  toggleTenant: (id: string) => adminApi.post(`/admin/tenants/${id}/toggle`),
+  listPermissions: () => adminApi.get('/admin/permissions'),
+  updatePermission: (id: string, allowed: boolean) => adminApi.put(`/admin/permissions/${id}`, { allowed }),
+  listContacts: () => adminApi.get('/admin/contacts'),
+  updateContactStatus: (id: string, status: string) => adminApi.put(`/admin/contacts/${id}/status`, { status }),
 }

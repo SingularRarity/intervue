@@ -1,6 +1,9 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+export type TenantRole = 'tenant_admin' | 'manager' | 'interviewer' | 'viewer'
+export type PlanTier = 'free' | 'starter' | 'growth' | 'enterprise'
+
 interface Tenant {
   id: string
   company_name: string
@@ -15,7 +18,12 @@ interface Tenant {
 interface AuthState {
   token: string | null
   tenant: Tenant | null
-  setAuth: (token: string, tenant: Tenant) => void
+  role: TenantRole
+  plan: PlanTier
+  userId: string | null
+  isGodAdmin: boolean
+  setAuth: (token: string, tenant: Tenant, role?: TenantRole, plan?: PlanTier, userId?: string | null) => void
+  setGodAdmin: (token: string, adminId: string, email: string) => void
   logout: () => void
 }
 
@@ -24,8 +32,22 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       token: null,
       tenant: null,
-      setAuth: (token, tenant) => set({ token, tenant }),
-      logout: () => set({ token: null, tenant: null }),
+      role: 'tenant_admin',
+      plan: 'free',
+      userId: null,
+      isGodAdmin: false,
+      setAuth: (token, tenant, role = 'tenant_admin', plan = 'free', userId = null) =>
+        set({ token, tenant, role, plan, userId, isGodAdmin: false }),
+      setGodAdmin: (token, adminId, email) =>
+        set({
+          token,
+          tenant: { id: '', company_name: 'Platform Admin', email, is_active: true, has_claude_key: false, has_sarvam_key: false },
+          role: 'tenant_admin',
+          plan: 'enterprise',
+          userId: adminId,
+          isGodAdmin: true,
+        }),
+      logout: () => set({ token: null, tenant: null, role: 'tenant_admin', plan: 'free', userId: null, isGodAdmin: false }),
     }),
     {
       name: 'auth-storage',
@@ -54,8 +76,9 @@ export const useInterviewStore = create<InterviewState>((set) => ({
   messages: [],
   setCurrentSession: (sessionId) => set({ currentSession: sessionId }),
   setIsRecording: (recording) => set({ isRecording: recording }),
-  addMessage: (message) => set((state) => ({
-    messages: [...state.messages, { ...message, timestamp: new Date() }],
-  })),
+  addMessage: (message) =>
+    set((state) => ({
+      messages: [...state.messages, { ...message, timestamp: new Date() }],
+    })),
   clearMessages: () => set({ messages: [] }),
 }))

@@ -11,11 +11,13 @@ import {
   MessageCircle,
   Plus,
   ExternalLink,
+  CreditCard,
 } from 'lucide-react'
 import { useAuthStore } from '@/lib/store'
+import { PLAN_LABELS } from '@/lib/permissions'
 
 export default function Layout() {
-  const { tenant, logout } = useAuthStore()
+  const { tenant, logout, plan } = useAuthStore()
   const navigate = useNavigate()
 
   const handleLogout = () => {
@@ -31,9 +33,10 @@ export default function Layout() {
   ]
 
   const manageNav = [
-    { path: '/team',         icon: UserPlus, label: 'Team' },
-    { path: '/integrations', icon: Plug,     label: 'Integrations' },
-    { path: '/settings',     icon: Settings, label: 'Settings' },
+    { path: '/team',         icon: UserPlus,     label: 'Team' },
+    { path: '/billing',      icon: CreditCard,   label: 'Plan & Billing' },
+    { path: '/integrations', icon: Plug,         label: 'Integrations' },
+    { path: '/settings',     icon: Settings,     label: 'Settings' },
   ]
 
   const initials = tenant?.company_name
@@ -42,6 +45,8 @@ export default function Layout() {
     .map((w: string) => w[0])
     .join('')
     .toUpperCase() ?? 'AI'
+
+  const planLabel = PLAN_LABELS[plan] ?? plan
 
   return (
     <div className="flex h-screen bg-canvas">
@@ -95,8 +100,18 @@ export default function Layout() {
           </button>
         </div>
 
-        {/* Footer links + user */}
+        {/* Footer */}
         <div className="mt-4 pt-4 border-t border-white/5 pb-4 space-y-0.5">
+          {/* Plan badge */}
+          <div className="mx-3 mb-2 px-3 py-2 rounded-lg bg-white/5 flex items-center justify-between">
+            <span className="text-white/40 text-[10px] uppercase tracking-wider">Plan</span>
+            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+              plan === 'free' ? 'bg-dark-600 text-white/50' : 'bg-primary-500/20 text-primary-300'
+            }`}>
+              {planLabel}
+            </span>
+          </div>
+
           {/* Alpha feedback CTA */}
           <div className="mx-3 mb-3 p-3 rounded-lg bg-primary-500/10 border border-primary-500/20">
             <p className="text-primary-300 text-[11px] font-semibold mb-0.5">Alpha Program</p>
@@ -142,7 +157,7 @@ export default function Layout() {
         </div>
       </aside>
 
-      {/* Main content — offset by sidebar width */}
+      {/* Main content */}
       <main className="ml-[220px] flex-1 overflow-auto bg-canvas">
         <div className="p-8 max-w-7xl mx-auto">
           <Outlet />

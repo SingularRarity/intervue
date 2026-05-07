@@ -13,12 +13,15 @@ import SessionResultsPage from './pages/SessionResultsPage'
 import AnalyticsPage from './pages/AnalyticsPage'
 import SettingsPage from './pages/SettingsPage'
 import TeamPage from './pages/TeamPage'
+import BillingPage from './pages/BillingPage'
 import IntegrationsPage from './pages/IntegrationsPage'
 import CandidatePortalPage from './pages/CandidatePortalPage'
 import CodeAssessmentPage from './pages/CodeAssessmentPage'
 import NotFoundPage from './pages/NotFoundPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import OAuthCallbackPage from './pages/OAuthCallbackPage'
+import AdminLoginPage from './pages/AdminLoginPage'
+import AdminPage from './pages/AdminPage'
 
 function App() {
   const { token } = useAuthStore()
@@ -32,8 +35,12 @@ function App() {
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
 
-      {/* Public candidate portal — no auth required */}
+      {/* Public candidate portal */}
       <Route path="/candidate/:token" element={<CandidatePortalPage />} />
+
+      {/* God admin console — its own layout */}
+      <Route path="/admin/login" element={<AdminLoginPage />} />
+      <Route path="/admin" element={<AdminPage />} />
 
       {/* Video interview — no sidebar */}
       <Route
@@ -57,10 +64,11 @@ function App() {
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/team" element={<TeamPage />} />
+        <Route path="/billing" element={<BillingPage />} />
         <Route path="/integrations" element={<IntegrationsPage />} />
       </Route>
 
-      {/* 404 catch-all */}
+      {/* 404 */}
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )

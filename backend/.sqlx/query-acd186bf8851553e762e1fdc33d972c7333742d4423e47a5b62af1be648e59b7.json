@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT t.is_active, COALESCE(ts.plan_tier::TEXT, 'free') as plan\n               FROM tenants t\n               LEFT JOIN tenant_subscriptions ts ON ts.tenant_id = t.id\n               WHERE t.id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "is_active",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 1,
+        "name": "plan",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      true,
+      null
+    ]
+  },
+  "hash": "acd186bf8851553e762e1fdc33d972c7333742d4423e47a5b62af1be648e59b7"
+}

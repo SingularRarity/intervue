@@ -49,7 +49,7 @@ services:
     build: ./frontend
     container_name: ai-interview-frontend
     ports:
-      - "3000:80"
+      - "3001:80"
     depends_on:
       - backend
 

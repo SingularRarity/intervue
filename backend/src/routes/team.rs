@@ -2,99 +2,211 @@ use axum::{
     extract::{Path, State},
     http::StatusCode,
     response::Json,
+    Extension,
 };
-use chrono::Utc;
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use std::sync::Arc;
 use uuid::Uuid;
 
-use crate::{models::AuthClaims, AppState};
+use crate::{
+    auth::ResolvedClaims,
+    models::{InviteUserRequest, TenantRole, TenantUserResponse, UpdateUserRoleRequest},
+    AppState,
+};
 
-#[derive(Debug, Serialize, sqlx::FromRow)]
-pub struct TeamMember {
-    pub id: Uuid,
-    pub email: String,
-    pub role: String,
-    pub invited_at: chrono::DateTime<Utc>,
-    pub accepted_at: Option<chrono::DateTime<Utc>>,
+fn require_admin(claims: &ResolvedClaims) -> Result<(), StatusCode> {
+    if matches!(claims.role, TenantRole::TenantAdmin | TenantRole::Manager) {
+        Ok(())
+    } else {
+        Err(StatusCode::FORBIDDEN)
+    }
 }
 
-#[derive(Debug, Deserialize)]
-pub struct InviteRequest {
-    pub email: String,
-    pub role: String, // admin | recruiter | viewer
-}
+// ---------------------------------------------------------------------------
+// List team members
+// ---------------------------------------------------------------------------
 
 pub async fn list_team(
     State(state): State<Arc<AppState>>,
-    claims: axum::Extension<AuthClaims>,
-) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
-    let members = sqlx::query_as::<_, TeamMember>(
-        "SELECT id, email, role, invited_at, accepted_at \
-         FROM team_members WHERE tenant_id = $1 ORDER BY invited_at DESC"
+    Extension(claims): Extension<ResolvedClaims>,
+) -> Result<Json<Vec<TenantUserResponse>>, StatusCode> {
+    let rows = sqlx::query_as::<_, crate::models::TenantUser>(
+        "SELECT id, tenant_id, email, full_name, role, is_active, invited_by, accepted_at, last_login_at, created_at
+         FROM tenant_users WHERE tenant_id = $1 ORDER BY created_at DESC",
     )
-    .bind(claims.sub)
+    .bind(claims.tenant_id)
     .fetch_all(state.db.pool())
     .await
-    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;
+    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    Ok(Json(json!({ "members": members })))
+    Ok(Json(rows.into_iter().map(TenantUserResponse::from).collect()))
+}
+
+// ---------------------------------------------------------------------------
+// Invite a user
+// ---------------------------------------------------------------------------
+
+#[derive(Serialize)]
+pub struct InviteResponse {
+    pub id: Uuid,
+    pub email: String,
+    pub role: TenantRole,
+    pub invite_token: String,
 }
 
 pub async fn invite_member(
     State(state): State<Arc<AppState>>,
-    claims: axum::Extension<AuthClaims>,
-    Json(req): Json<InviteRequest>,
-) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
-    let valid_roles = ["admin", "recruiter", "viewer"];
-    if !valid_roles.contains(&req.role.as_str()) {
-        return Err((
-            StatusCode::BAD_REQUEST,
-            Json(json!({ "error": "role must be admin, recruiter, or viewer" })),
-        ));
+    Extension(claims): Extension<ResolvedClaims>,
+    Json(body): Json<InviteUserRequest>,
+) -> Result<Json<InviteResponse>, StatusCode> {
+    require_admin(&claims)?;
+
+    // Managers cannot invite TenantAdmin level users
+    if claims.role == TenantRole::Manager && body.role == TenantRole::TenantAdmin {
+        return Err(StatusCode::FORBIDDEN);
     }
 
     let id = Uuid::new_v4();
-    sqlx::query(
-        "INSERT INTO team_members (id, tenant_id, email, role, invited_at) \
-         VALUES ($1, $2, $3, $4, $5) \
-         ON CONFLICT (tenant_id, email) DO UPDATE SET role = $4"
+    let token = Uuid::new_v4().to_string().replace('-', "");
+
+    sqlx::query!(
+        r#"INSERT INTO tenant_users (id, tenant_id, email, full_name, role, is_active, invited_by, invite_token)
+           VALUES ($1, $2, $3, $4, $5, false, $6, $7)
+           ON CONFLICT (tenant_id, email) DO UPDATE
+             SET role = EXCLUDED.role,
+                 full_name = COALESCE(EXCLUDED.full_name, tenant_users.full_name),
+                 invite_token = EXCLUDED.invite_token,
+                 invited_by = EXCLUDED.invited_by"#,
+        id,
+        claims.tenant_id,
+        body.email,
+        body.full_name,
+        body.role as TenantRole,
+        claims.user_id,
+        &token,
     )
-    .bind(id)
-    .bind(claims.sub)
-    .bind(&req.email)
-    .bind(&req.role)
-    .bind(Utc::now())
     .execute(state.db.pool())
     .await
-    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;
+    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    Ok(Json(json!({
-        "message": "Team member invited",
-        "id": id,
-        "email": req.email,
-        "role": req.role,
-    })))
+    Ok(Json(InviteResponse {
+        id,
+        email: body.email,
+        role: body.role,
+        invite_token: token,
+    }))
 }
+
+// ---------------------------------------------------------------------------
+// Accept an invite (public — token in URL, no JWT required)
+// ---------------------------------------------------------------------------
+
+#[derive(Deserialize)]
+pub struct AcceptInviteRequest {
+    pub token: String,
+    pub password: String,
+    pub full_name: Option<String>,
+}
+
+pub async fn accept_invite(
+    State(state): State<Arc<AppState>>,
+    Json(body): Json<AcceptInviteRequest>,
+) -> Result<StatusCode, StatusCode> {
+    let row = sqlx::query!(
+        "SELECT id, tenant_id, email FROM tenant_users WHERE invite_token = $1 AND is_active = false",
+        body.token,
+    )
+    .fetch_optional(state.db.pool())
+    .await
+    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+    .ok_or(StatusCode::NOT_FOUND)?;
+
+    let hash = crate::auth::hash_password(&body.password)
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    sqlx::query!(
+        r#"UPDATE tenant_users
+           SET is_active = true,
+               password_hash = $1,
+               full_name = COALESCE($2, full_name),
+               accepted_at = NOW(),
+               invite_token = NULL
+           WHERE id = $3"#,
+        hash,
+        body.full_name,
+        row.id,
+    )
+    .execute(state.db.pool())
+    .await
+    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    Ok(StatusCode::NO_CONTENT)
+}
+
+// ---------------------------------------------------------------------------
+// Update role
+// ---------------------------------------------------------------------------
+
+pub async fn update_role(
+    State(state): State<Arc<AppState>>,
+    Extension(claims): Extension<ResolvedClaims>,
+    Path(user_id): Path<Uuid>,
+    Json(body): Json<UpdateUserRoleRequest>,
+) -> Result<StatusCode, StatusCode> {
+    require_admin(&claims)?;
+
+    // Managers cannot promote to tenant_admin
+    if claims.role == TenantRole::Manager && body.role == TenantRole::TenantAdmin {
+        return Err(StatusCode::FORBIDDEN);
+    }
+
+    let affected = sqlx::query!(
+        "UPDATE tenant_users SET role = $1 WHERE id = $2 AND tenant_id = $3",
+        body.role as TenantRole,
+        user_id,
+        claims.tenant_id,
+    )
+    .execute(state.db.pool())
+    .await
+    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+    .rows_affected();
+
+    if affected == 0 {
+        return Err(StatusCode::NOT_FOUND);
+    }
+
+    Ok(StatusCode::NO_CONTENT)
+}
+
+// ---------------------------------------------------------------------------
+// Deactivate / remove a user
+// ---------------------------------------------------------------------------
 
 pub async fn remove_member(
     State(state): State<Arc<AppState>>,
-    claims: axum::Extension<AuthClaims>,
-    Path(member_id): Path<Uuid>,
-) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
-    let rows = sqlx::query(
-        "DELETE FROM team_members WHERE id = $1 AND tenant_id = $2"
-    )
-    .bind(member_id)
-    .bind(claims.sub)
-    .execute(state.db.pool())
-    .await
-    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;
+    Extension(claims): Extension<ResolvedClaims>,
+    Path(user_id): Path<Uuid>,
+) -> Result<StatusCode, StatusCode> {
+    require_admin(&claims)?;
 
-    if rows.rows_affected() == 0 {
-        return Err((StatusCode::NOT_FOUND, Json(json!({ "error": "Member not found" }))));
+    // Cannot remove yourself
+    if claims.user_id == Some(user_id) {
+        return Err(StatusCode::CONFLICT);
     }
 
-    Ok(Json(json!({ "message": "Team member removed" })))
+    let affected = sqlx::query!(
+        "UPDATE tenant_users SET is_active = false WHERE id = $1 AND tenant_id = $2",
+        user_id,
+        claims.tenant_id,
+    )
+    .execute(state.db.pool())
+    .await
+    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+    .rows_affected();
+
+    if affected == 0 {
+        return Err(StatusCode::NOT_FOUND);
+    }
+
+    Ok(StatusCode::NO_CONTENT)
 }
