@@ -88,12 +88,31 @@ The deploy script:
 ./infra/scripts/deploy.sh v1.2.3       # explicit tag
 ```
 
-## Custom domain (optional)
+## Custom domain (GoDaddy)
 
-Set `domain_name = "yourdomain.com"` in `terraform.tfvars`. Terraform will:
-- Create an ACM certificate in us-east-1
-- Add CloudFront alias `app.yourdomain.com`
-- Create Route53 A record (you must have the hosted zone in Route53)
+Domain: `intervue.singularraritylabs.com`
+
+`terraform.tfvars` already has `domain_name = "singularraritylabs.com"` and `subdomain = "intervue"`.
+
+**Two-step deploy for the first time:**
+
+**Step 1** — apply without cert validation completing:
+```bash
+terraform apply -target=aws_acm_certificate.frontend -target=aws_cloudfront_distribution.frontend
+terraform output dns_records_for_godaddy
+```
+
+**Step 2** — add both CNAMEs shown in output to GoDaddy:
+- Go to GoDaddy → DNS → singularraritylabs.com → Add Record
+- Record 1: CNAME for ACM validation (long `_xxxx` name)
+- Record 2: CNAME `intervue` → CloudFront domain
+
+Wait 5–15 minutes for propagation, then:
+```bash
+terraform apply   # ACM validation completes, CloudFront alias activates
+```
+
+After that, `./infra/scripts/deploy.sh` handles all future deploys with no DNS changes needed.
 
 ## Estimated monthly cost
 

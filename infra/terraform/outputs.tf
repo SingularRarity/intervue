@@ -59,6 +59,26 @@ output "aws_region" {
   value       = var.aws_region
 }
 
+output "dns_records_for_godaddy" {
+  description = "Add these two records in GoDaddy DNS after first apply, then re-run terraform apply"
+  value = var.domain_name != "" ? {
+    step1_acm_validation = {
+      type  = "CNAME"
+      name  = tolist(aws_acm_certificate.frontend[0].domain_validation_options)[0].resource_record_name
+      value = tolist(aws_acm_certificate.frontend[0].domain_validation_options)[0].resource_record_value
+      ttl   = "600"
+      note  = "Required for SSL certificate — add this first"
+    }
+    step2_app_subdomain = {
+      type  = "CNAME"
+      name  = "${var.subdomain}"
+      value = aws_cloudfront_distribution.frontend.domain_name
+      ttl   = "600"
+      note  = "Points intervue.singularraritylabs.com → CloudFront"
+    }
+  } : null
+}
+
 output "estimated_monthly_cost" {
   description = "Rough cost estimate at minimal load (no NAT Gateway, FARGATE_SPOT)"
   value       = <<-EOT

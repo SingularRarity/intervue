@@ -177,46 +177,16 @@ resource "aws_acm_certificate" "frontend" {
   }
 }
 
+# ACM validation is done manually via GoDaddy DNS.
+# After `terraform apply`, run `terraform output dns_records_for_godaddy`
+# and add the two CNAME records shown there. Once propagated (~5-15 min),
+# re-run `terraform apply` — the validation resource will complete.
 resource "aws_acm_certificate_validation" "frontend" {
-  count                   = var.domain_name != "" ? 1 : 0
-  provider                = aws.us_east_1
-  certificate_arn         = aws_acm_certificate.frontend[0].arn
-  validation_record_fqdns = [for r in aws_route53_record.cert_validation : r.fqdn]
-}
+  count           = var.domain_name != "" ? 1 : 0
+  provider        = aws.us_east_1
+  certificate_arn = aws_acm_certificate.frontend[0].arn
 
-# ---- Route53 records (only if domain_name is set) ----
-
-data "aws_route53_zone" "main" {
-  count        = var.domain_name != "" ? 1 : 0
-  name         = var.domain_name
-  private_zone = false
-}
-
-resource "aws_route53_record" "cert_validation" {
-  for_each = var.domain_name != "" ? {
-    for dvo in aws_acm_certificate.frontend[0].domain_validation_options : dvo.domain_name => {
-      name   = dvo.resource_record_name
-      type   = dvo.resource_record_type
-      record = dvo.resource_record_value
-    }
-  } : {}
-
-  zone_id = data.aws_route53_zone.main[0].zone_id
-  name    = each.value.name
-  type    = each.value.type
-  records = [each.value.record]
-  ttl     = 60
-}
-
-resource "aws_route53_record" "frontend" {
-  count   = var.domain_name != "" ? 1 : 0
-  zone_id = data.aws_route53_zone.main[0].zone_id
-  name    = "${var.subdomain}.${var.domain_name}"
-  type    = "A"
-
-  alias {
-    name                   = aws_cloudfront_distribution.frontend.domain_name
-    zone_id                = aws_cloudfront_distribution.frontend.hosted_zone_id
-    evaluate_target_health = false
+  timeouts {
+    create = "30m" # wait up to 30 min for GoDaddy DNS to propagate
   }
 }
