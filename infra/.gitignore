@@ -1,0 +1,10 @@
+# Terraform state and secrets — never commit
+terraform.tfvars
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+crash.log
+
+# Deploy artifacts
+*.tfplan

@@ -24,6 +24,15 @@ Thumbs.db
 # Docker
 *.env
 !backend/.env.example
+
+# Terraform
+infra/terraform/terraform.tfvars
+infra/terraform/.terraform/
+infra/terraform/*.tfstate
+infra/terraform/*.tfstate.backup
+infra/terraform/.terraform.lock.hcl
+infra/terraform/crash.log
+infra/terraform/*.tfplan
 .gstack/
 ui/
 local_docs/
