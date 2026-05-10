@@ -114,7 +114,13 @@ adminApi.interceptors.request.use((config) => {
 export { adminApi }
 
 export const jdApi = {
-  parse: (jd_text: string) => api.post('/interviews/parse-jd', { jd_text }),
+  parseFile: (file: File) => {
+    const form = new FormData()
+    form.append('file', file)
+    return api.post('/interviews/parse-jd', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
 }
 
 export const questionsApi = {

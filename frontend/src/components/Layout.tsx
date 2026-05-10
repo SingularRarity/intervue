@@ -9,7 +9,6 @@ import {
   UserPlus,
   Plug,
   MessageCircle,
-  Plus,
   ExternalLink,
   CreditCard,
 } from 'lucide-react'
@@ -88,17 +87,6 @@ export default function Layout() {
             </NavLink>
           ))}
         </nav>
-
-        {/* New Campaign CTA */}
-        <div className="px-5 mt-6">
-          <button
-            onClick={() => navigate('/templates?new=1')}
-            className="w-full flex items-center justify-center gap-2 bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold py-2.5 rounded-md transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            New Campaign
-          </button>
-        </div>
 
         {/* Footer */}
         <div className="mt-4 pt-4 border-t border-white/5 pb-4 space-y-0.5">

@@ -127,7 +127,7 @@ export default function TemplatesPage() {
   })
 
   const parseJdMutation = useMutation({
-    mutationFn: (text: string) => jdApi.parse(text).then(r => r.data),
+    mutationFn: (file: File) => jdApi.parseFile(file).then(r => r.data),
     onSuccess: (data: any) => {
       setForm(f => ({
         ...f,
@@ -140,7 +140,7 @@ export default function TemplatesPage() {
       }))
       toast.success('JD parsed — form auto-filled')
     },
-    onError: () => toast.error('Failed to parse JD'),
+    onError: (err: any) => toast.error(err.response?.data?.error || 'Failed to parse JD'),
     onSettled: () => setJdParsing(false),
   })
 
@@ -148,14 +148,7 @@ export default function TemplatesPage() {
     const file = e.target.files?.[0]
     if (!file) return
     setJdParsing(true)
-    const reader = new FileReader()
-    reader.onload = (ev) => {
-      const text = ev.target?.result as string
-      if (!text?.trim()) { setJdParsing(false); toast.error('Could not read file'); return }
-      parseJdMutation.mutate(text)
-    }
-    reader.onerror = () => { setJdParsing(false); toast.error('Failed to read file') }
-    reader.readAsText(file)
+    parseJdMutation.mutate(file)
     e.target.value = ''
   }
 
@@ -398,12 +391,12 @@ export default function TemplatesPage() {
               {/* Details tab */}
               {activeTab === 'details' && (
                 <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                  {/* JD Upload */}
+                  {/* JD Auto-fill */}
                   <div className="flex items-center gap-3 p-3 rounded-xl bg-dark-50 border border-dark-100 border-dashed">
                     <input
                       ref={fileInputRef}
                       type="file"
-                      accept=".txt,.pdf,.doc,.docx"
+                      accept=".txt,.doc,.docx,.pdf"
                       onChange={handleJdUpload}
                       className="hidden"
                     />
@@ -416,7 +409,9 @@ export default function TemplatesPage() {
                       {jdParsing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                       {jdParsing ? 'Parsing JD...' : 'Upload JD'}
                     </button>
-                    <span className="text-[12px] text-dark-400 flex-1">Upload a job description to auto-fill this form</span>
+                    <span className="text-[12px] text-dark-400 flex-1">
+                      Upload a JD to auto-fill · supports .docx, .pdf, .txt
+                    </span>
                     {jdParsing && <Sparkles className="w-4 h-4 text-primary-400 animate-pulse" />}
                   </div>
 

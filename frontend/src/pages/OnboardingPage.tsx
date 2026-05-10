@@ -45,7 +45,10 @@ export default function OnboardingPage() {
     if (nextStep) setStep(nextStep)
   }
 
-  const finish = () => navigate('/dashboard')
+  const finish = () => {
+    if (tenant?.id) localStorage.setItem(`onboarding_done_${tenant.id}`, '1')
+    navigate('/dashboard')
+  }
 
   const companyName = tenant?.company_name ?? 'there'
 

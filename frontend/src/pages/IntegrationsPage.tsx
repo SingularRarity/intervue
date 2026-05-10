@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Plug, Link2, Shield, CheckCircle } from 'lucide-react'
+import { Plug, Link2, Shield, CheckCircle, Info } from 'lucide-react'
 import api from '@/lib/api'
 
 interface AtsConfig {
@@ -63,39 +63,50 @@ export default function IntegrationsPage() {
   if (loading) return <div className="text-dark-400">Loading...</div>
 
   return (
-    <div>
-      <div className="flex items-center gap-3 mb-8">
-        <Plug className="w-7 h-7 text-primary-400" />
-        <div>
-          <h1 className="text-2xl font-bold text-dark-900">Integrations</h1>
-          <p className="text-dark-400 text-sm">Connect your ATS and configure Enterprise SSO</p>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold text-dark-900 tracking-tight">Integrations</h1>
+        <p className="text-dark-400 mt-0.5 text-sm">Connect Intervue to your existing HR stack</p>
       </div>
 
       {/* ATS Section */}
-      <div className="bg-white border border-dark-200 rounded-2xl p-6 mb-6">
-        <h2 className="text-dark-900 font-semibold mb-1 flex items-center gap-2">
-          <Link2 className="w-4 h-4 text-primary-400" />
-          ATS Integration
-        </h2>
-        <p className="text-dark-400 text-sm mb-5">
-          Push completed interview results to your ATS via webhook.
+      <div className="card">
+        <div className="flex items-start justify-between mb-1">
+          <h2 className="text-dark-900 font-semibold flex items-center gap-2">
+            <Link2 className="w-4 h-4 text-primary-400" />
+            ATS Webhook
+          </h2>
+          <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full">
+            Growth+
+          </span>
+        </div>
+        <p className="text-dark-400 text-sm mb-4">
+          When an interview session is completed, Intervue will POST the candidate's score, recommendation, and full analysis to your ATS webhook.
         </p>
+
+        {/* How it works note */}
+        <div className="flex gap-2.5 p-3 bg-primary-50 border border-primary-100 rounded-xl mb-5">
+          <Info className="w-4 h-4 text-primary-400 shrink-0 mt-0.5" />
+          <div className="text-[12px] text-primary-700 leading-relaxed">
+            <strong>How it works:</strong> Save your webhook URL below. After each interview session is complete and results are reviewed, use the API endpoint <code className="bg-primary-100 px-1 rounded">POST /api/v1/sessions/:id/ats-push</code> to trigger the push. Native in-app push button coming in the next release.
+          </div>
+        </div>
+
         <form onSubmit={saveAts} className="space-y-4">
           <div>
-            <label className="block text-dark-500 text-sm mb-1.5">
+            <label className="block text-[12px] font-bold uppercase tracking-wider text-dark-400 mb-1.5">
               Greenhouse Webhook URL
             </label>
             <input
               type="url"
               value={ats.greenhouse_webhook}
               onChange={(e) => setAts({ ...ats, greenhouse_webhook: e.target.value })}
-              placeholder="https://hooks.greenhouse.io/..."
+              placeholder="https://hooks.greenhouse.io/applicant_sources/..."
               className="input-field"
             />
           </div>
           <div>
-            <label className="block text-dark-500 text-sm mb-1.5">
+            <label className="block text-[12px] font-bold uppercase tracking-wider text-dark-400 mb-1.5">
               Lever Webhook URL
             </label>
             <input
@@ -106,29 +117,26 @@ export default function IntegrationsPage() {
               className="input-field"
             />
           </div>
-          <button
-            type="submit"
-            className="btn-primary flex items-center gap-2"
-          >
+          <button type="submit" className="btn-primary flex items-center gap-2">
             {atsSaved && <CheckCircle className="w-4 h-4" />}
-            {atsSaved ? 'Saved!' : 'Save ATS Config'}
+            {atsSaved ? 'Saved!' : 'Save Webhook Config'}
           </button>
         </form>
       </div>
 
       {/* SSO Section */}
-      <div className="bg-white border border-dark-200 rounded-2xl p-6">
-        <div className="flex items-center justify-between mb-1">
+      <div className="card">
+        <div className="flex items-start justify-between mb-1">
           <h2 className="text-dark-900 font-semibold flex items-center gap-2">
             <Shield className="w-4 h-4 text-primary-400" />
             Enterprise SSO
           </h2>
-          <span className="text-xs bg-primary-600/20 text-primary-400 px-2 py-0.5 rounded-full">
+          <span className="text-[10px] font-bold uppercase tracking-wider bg-purple-50 text-purple-600 border border-purple-200 px-2 py-0.5 rounded-full">
             Enterprise
           </span>
         </div>
         <p className="text-dark-400 text-sm mb-5">
-          Allow your team to sign in with your identity provider.
+          Allow your team to sign in with your identity provider (Google Workspace, GitHub, or SAML 2.0).
         </p>
         <form onSubmit={saveSso} className="space-y-4">
           <div className="flex items-center gap-3">
@@ -139,12 +147,10 @@ export default function IntegrationsPage() {
               onChange={(e) => setSso({ ...sso, enabled: e.target.checked })}
               className="w-4 h-4 accent-primary-600"
             />
-            <label htmlFor="sso-enabled" className="text-dark-600 text-sm">
-              Enable SSO
-            </label>
+            <label htmlFor="sso-enabled" className="text-dark-600 text-sm">Enable SSO for this workspace</label>
           </div>
           <div>
-            <label className="block text-dark-500 text-sm mb-1.5">Provider</label>
+            <label className="block text-[12px] font-bold uppercase tracking-wider text-dark-400 mb-1.5">Provider</label>
             <select
               value={sso.provider}
               onChange={(e) => setSso({ ...sso, provider: e.target.value })}
@@ -157,19 +163,19 @@ export default function IntegrationsPage() {
           </div>
           {sso.provider !== 'saml' && (
             <div>
-              <label className="block text-dark-500 text-sm mb-1.5">OAuth Client ID</label>
+              <label className="block text-[12px] font-bold uppercase tracking-wider text-dark-400 mb-1.5">OAuth Client ID</label>
               <input
                 type="text"
                 value={sso.client_id}
                 onChange={(e) => setSso({ ...sso, client_id: e.target.value })}
-                placeholder="your-client-id"
+                placeholder="your-client-id.apps.googleusercontent.com"
                 className="input-field"
               />
             </div>
           )}
           {sso.provider === 'saml' && (
             <div>
-              <label className="block text-dark-500 text-sm mb-1.5">SAML Metadata URL</label>
+              <label className="block text-[12px] font-bold uppercase tracking-wider text-dark-400 mb-1.5">SAML Metadata URL</label>
               <input
                 type="url"
                 value={sso.saml_metadata_url}
@@ -179,14 +185,17 @@ export default function IntegrationsPage() {
               />
             </div>
           )}
-          <button
-            type="submit"
-            className="btn-primary flex items-center gap-2"
-          >
+          <button type="submit" className="btn-primary flex items-center gap-2">
             {ssoSaved && <CheckCircle className="w-4 h-4" />}
             {ssoSaved ? 'Saved!' : 'Save SSO Config'}
           </button>
         </form>
+      </div>
+
+      {/* Plug icon for empty state feel */}
+      <div className="flex items-center gap-3 text-dark-300 text-sm pt-2">
+        <Plug className="w-4 h-4" />
+        <span>More integrations (Slack, Workday, BambooHR) coming soon.</span>
       </div>
     </div>
   )

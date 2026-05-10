@@ -25,7 +25,8 @@ import AdminPage from './pages/AdminPage'
 import OnboardingPage from './pages/OnboardingPage'
 
 function App() {
-  const { token } = useAuthStore()
+  const { token, tenant } = useAuthStore()
+  const onboardingDone = tenant?.id ? !!localStorage.getItem(`onboarding_done_${tenant.id}`) : false
 
   return (
     <Routes>
@@ -43,10 +44,10 @@ function App() {
       <Route path="/admin/login" element={<AdminLoginPage />} />
       <Route path="/admin" element={<AdminPage />} />
 
-      {/* Onboarding — no sidebar, requires auth */}
+      {/* Onboarding — no sidebar, requires auth; skip if already completed */}
       <Route
         path="/onboarding"
-        element={token ? <OnboardingPage /> : <Navigate to="/login" />}
+        element={!token ? <Navigate to="/login" /> : onboardingDone ? <Navigate to="/dashboard" /> : <OnboardingPage />}
       />
 
       {/* Video interview — no sidebar */}

@@ -347,21 +347,92 @@ pub async fn submit_feedback(
     Ok(Json(json!({ "message": "Feedback submitted successfully" })))
 }
 
-#[derive(Deserialize)]
-pub struct ParseJdRequest {
-    pub jd_text: String,
+// ---- Text extractors ----
+
+fn extract_text_from_docx(bytes: &[u8]) -> anyhow::Result<String> {
+    use std::io::Read;
+    let cursor = std::io::Cursor::new(bytes);
+    let mut archive = zip::ZipArchive::new(cursor)?;
+    let mut xml_file = archive.by_name("word/document.xml")?;
+    let mut xml = String::new();
+    xml_file.read_to_string(&mut xml)?;
+    // Pull text out of <w:t> tags
+    let mut text = String::new();
+    let mut in_wt = false;
+    let mut tag_buf = String::new();
+    for ch in xml.chars() {
+        match ch {
+            '<' => { tag_buf.clear(); tag_buf.push(ch); in_wt = false; }
+            '>' => {
+                tag_buf.push(ch);
+                let tag = tag_buf.trim_start_matches('<').trim_end_matches('>').trim();
+                if tag == "w:t" || tag.starts_with("w:t ") { in_wt = true; }
+                tag_buf.clear();
+            }
+            _ if !tag_buf.is_empty() => { tag_buf.push(ch); }
+            _ if in_wt => { text.push(ch); }
+            ' ' | '\n' | '\r' => { if !text.ends_with(' ') { text.push(' '); } }
+            _ => {}
+        }
+    }
+    Ok(text.trim().to_string())
 }
+
+fn extract_text_from_pdf(bytes: &[u8]) -> anyhow::Result<String> {
+    let doc = lopdf::Document::load_from(bytes)?;
+    let pages = doc.get_pages();
+    let page_nums: Vec<u32> = pages.keys().copied().collect();
+    let mut text = String::new();
+    for page_num in page_nums {
+        if let Ok(page_text) = doc.extract_text(&[page_num]) {
+            text.push_str(&page_text);
+            text.push('\n');
+        }
+    }
+    Ok(text.trim().to_string())
+}
+
+// ---- parse-jd handler (multipart) ----
 
 pub async fn parse_jd(
     State(state): State<Arc<AppState>>,
     claims: axum::Extension<AuthClaims>,
-    Json(req): Json<ParseJdRequest>,
+    mut multipart: axum::extract::Multipart,
 ) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
-    if req.jd_text.trim().is_empty() {
-        return Err((
-            StatusCode::BAD_REQUEST,
-            Json(json!({ "error": "jd_text is required" })),
-        ));
+    // Collect the file field
+    let mut filename = String::new();
+    let mut file_bytes: Vec<u8> = Vec::new();
+
+    while let Some(field) = multipart.next_field().await
+        .map_err(|e| (StatusCode::BAD_REQUEST, Json(json!({ "error": e.to_string() }))))? {
+        if field.name() == Some("file") {
+            filename = field.file_name().unwrap_or("file.txt").to_string().to_lowercase();
+            file_bytes = field.bytes().await
+                .map_err(|e| (StatusCode::BAD_REQUEST, Json(json!({ "error": e.to_string() }))))?
+                .to_vec();
+            break;
+        }
+    }
+
+    if file_bytes.is_empty() {
+        return Err((StatusCode::BAD_REQUEST, Json(json!({ "error": "No file uploaded" }))));
+    }
+
+    // Extract text based on extension
+    let jd_text: String = if filename.ends_with(".docx") || filename.ends_with(".doc") {
+        extract_text_from_docx(&file_bytes)
+            .map_err(|e| (StatusCode::UNPROCESSABLE_ENTITY, Json(json!({ "error": format!("Could not read Word document: {}", e) }))))?
+    } else if filename.ends_with(".pdf") {
+        extract_text_from_pdf(&file_bytes)
+            .map_err(|e| (StatusCode::UNPROCESSABLE_ENTITY, Json(json!({ "error": format!("Could not read PDF: {}", e) }))))?
+    } else {
+        // .txt or anything else — treat as UTF-8 text
+        String::from_utf8(file_bytes)
+            .map_err(|_| (StatusCode::BAD_REQUEST, Json(json!({ "error": "File is not valid UTF-8 text" }))))?
+    };
+
+    if jd_text.trim().is_empty() {
+        return Err((StatusCode::BAD_REQUEST, Json(json!({ "error": "Could not extract any text from the file" }))));
     }
 
     // Resolve Claude key: tenant key → platform key
@@ -378,7 +449,7 @@ pub async fn parse_jd(
             Json(json!({ "error": "No AI API key configured" })),
         ))?;
 
-    let result = state.claude.parse_jd(&claude_key, &req.jd_text).await
+    let result = state.claude.parse_jd(&claude_key, &jd_text).await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;
 
     Ok(Json(serde_json::to_value(&result).unwrap_or_default()))
