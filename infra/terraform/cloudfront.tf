@@ -76,7 +76,7 @@ resource "aws_cloudfront_distribution" "frontend" {
   default_root_object = "index.html"
   price_class         = "PriceClass_100" # US + Europe only — cheapest tier
 
-  aliases = var.domain_name != "" ? ["app.${var.domain_name}"] : []
+  aliases = var.domain_name != "" ? ["${var.subdomain}.${var.domain_name}"] : []
 
   # Origin 1 — ALB backend (API + WebSocket)
   origin {
@@ -168,7 +168,7 @@ resource "aws_cloudfront_distribution" "frontend" {
 resource "aws_acm_certificate" "frontend" {
   count             = var.domain_name != "" ? 1 : 0
   provider          = aws.us_east_1
-  domain_name       = "app.${var.domain_name}"
+  domain_name       = "${var.subdomain}.${var.domain_name}"
   validation_method = "DNS"
   tags              = { Name = "${local.name_prefix}-cert" }
 
@@ -211,7 +211,7 @@ resource "aws_route53_record" "cert_validation" {
 resource "aws_route53_record" "frontend" {
   count   = var.domain_name != "" ? 1 : 0
   zone_id = data.aws_route53_zone.main[0].zone_id
-  name    = "app.${var.domain_name}"
+  name    = "${var.subdomain}.${var.domain_name}"
   type    = "A"
 
   alias {

@@ -157,7 +157,13 @@ variable "google_client_secret" {
 # ---- Domain (optional) ----
 
 variable "domain_name" {
-  description = "Custom domain name e.g. intervue.ai — leave empty to use CloudFront default"
+  description = "Root domain managed in Route53 e.g. singularraritylabs.com — leave empty to use CloudFront default URL"
   type        = string
   default     = ""
+}
+
+variable "subdomain" {
+  description = "Subdomain prefix — full URL will be {subdomain}.{domain_name}"
+  type        = string
+  default     = "intervue"
 }

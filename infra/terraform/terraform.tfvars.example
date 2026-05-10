@@ -10,6 +10,7 @@ google_client_secret = "GOCSPX-..."
 
 # Optional
 platform_sarvam_key  = ""
-domain_name          = ""   # e.g. "intervue.ai" — leave empty to use CloudFront URL
+domain_name          = "singularraritylabs.com"
+subdomain            = "intervue"   # full URL: intervue.singularraritylabs.com
 environment          = "prod"
 aws_region           = "ap-south-1"

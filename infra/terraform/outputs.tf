@@ -9,7 +9,7 @@ output "cloudfront_url" {
 
 output "app_url" {
   description = "Final app URL (custom domain if set, otherwise CloudFront)"
-  value       = var.domain_name != "" ? "https://app.${var.domain_name}" : "https://${aws_cloudfront_distribution.frontend.domain_name}"
+  value       = var.domain_name != "" ? "https://${var.subdomain}.${var.domain_name}" : "https://${aws_cloudfront_distribution.frontend.domain_name}"
 }
 
 output "alb_dns" {
