@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
@@ -11,13 +12,20 @@ import {
   MessageCircle,
   ExternalLink,
   CreditCard,
+  HelpCircle,
 } from 'lucide-react'
 import { useAuthStore } from '@/lib/store'
 import { PLAN_LABELS } from '@/lib/permissions'
+import AppTour, { TOUR_DONE_KEY } from './AppTour'
 
 export default function Layout() {
   const { tenant, logout, plan } = useAuthStore()
   const navigate = useNavigate()
+
+  const tourDoneKey = tenant?.id ? TOUR_DONE_KEY(tenant.id) : null
+  const [showTour, setShowTour] = useState(
+    () => !!tourDoneKey && !localStorage.getItem(tourDoneKey)
+  )
 
   const handleLogout = () => {
     logout()
@@ -25,17 +33,17 @@ export default function Layout() {
   }
 
   const mainNav = [
-    { path: '/dashboard',  icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/templates',  icon: FileText,         label: 'Interviews' },
-    { path: '/candidates', icon: Users,            label: 'Candidates' },
-    { path: '/analytics',  icon: BarChart3,        label: 'Analytics' },
+    { path: '/dashboard',  icon: LayoutDashboard, label: 'Dashboard',  tour: 'nav-dashboard' },
+    { path: '/templates',  icon: FileText,         label: 'Interviews', tour: 'nav-interviews' },
+    { path: '/candidates', icon: Users,            label: 'Candidates', tour: 'nav-candidates' },
+    { path: '/analytics',  icon: BarChart3,        label: 'Analytics',  tour: 'nav-analytics' },
   ]
 
   const manageNav = [
-    { path: '/team',         icon: UserPlus,     label: 'Team' },
-    { path: '/billing',      icon: CreditCard,   label: 'Plan & Billing' },
-    { path: '/integrations', icon: Plug,         label: 'Integrations' },
-    { path: '/settings',     icon: Settings,     label: 'Settings' },
+    { path: '/team',         icon: UserPlus,     label: 'Team',          tour: 'nav-team' },
+    { path: '/billing',      icon: CreditCard,   label: 'Plan & Billing', tour: '' },
+    { path: '/integrations', icon: Plug,         label: 'Integrations',  tour: '' },
+    { path: '/settings',     icon: Settings,     label: 'Settings',      tour: 'nav-settings' },
   ]
 
   const initials = tenant?.company_name
@@ -65,6 +73,7 @@ export default function Layout() {
             <NavLink
               key={item.path}
               to={item.path}
+              {...(item.tour ? { 'data-tour': item.tour } : {})}
               className={({ isActive }) => isActive ? 'nav-item-active' : 'nav-item'}
             >
               <item.icon className="w-[18px] h-[18px] shrink-0" />
@@ -80,6 +89,7 @@ export default function Layout() {
             <NavLink
               key={item.path}
               to={item.path}
+              {...(item.tour ? { 'data-tour': item.tour } : {})}
               className={({ isActive }) => isActive ? 'nav-item-active' : 'nav-item'}
             >
               <item.icon className="w-[18px] h-[18px] shrink-0" />
@@ -99,6 +109,15 @@ export default function Layout() {
               {planLabel}
             </span>
           </div>
+
+          {/* Take a tour */}
+          <button
+            onClick={() => setShowTour(true)}
+            className="mx-3 mb-1 flex items-center gap-2 px-3 py-2 rounded-lg text-white/35 hover:text-white/70 hover:bg-white/5 transition-colors text-[11px] w-full"
+          >
+            <HelpCircle className="w-3.5 h-3.5 shrink-0" />
+            Take a tour
+          </button>
 
           {/* Alpha feedback CTA */}
           <div className="mx-3 mb-2 p-3 rounded-lg bg-primary-500/8 border border-primary-500/15">
@@ -174,6 +193,11 @@ export default function Layout() {
           <Outlet />
         </div>
       </main>
+
+      {/* Product tour */}
+      {showTour && tenant?.id && (
+        <AppTour tenantId={tenant.id} onDone={() => setShowTour(false)} />
+      )}
     </div>
   )
 }
