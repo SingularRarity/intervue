@@ -1,0 +1,109 @@
+[
+  {"question":"Tell me about a time you had to learn something completely new quickly.","category":"Adaptability","difficulty":"Easy","source_type":"Behavioral","keywords":["learn","change","flexible"]},
+  {"question":"Describe a situation where you had to adapt to a major change at work.","category":"Adaptability","difficulty":"Medium","source_type":"STAR-Based","keywords":["adapt","pivot","change"]},
+  {"question":"How do you handle it when priorities shift unexpectedly mid-project?","category":"Adaptability","difficulty":"Medium","source_type":"Situational","keywords":["priority","flexible","pivot"]},
+  {"question":"Tell me about a time you had to work outside your comfort zone.","category":"Adaptability","difficulty":"Hard","source_type":"STAR-Based","keywords":["challenge","growth","discomfort"]},
+  {"question":"What's the biggest professional change you've navigated, and how did you do it?","category":"Adaptability","difficulty":"Hard","source_type":"Open-Ended","keywords":["change","transition","resilience"]},
+
+  {"question":"Where do you see yourself in 5 years?","category":"Career Goals","difficulty":"Easy","source_type":"Open-Ended","keywords":["aspiration","growth","plan"]},
+  {"question":"What skills do you hope to develop in your next role?","category":"Career Goals","difficulty":"Easy","source_type":"Situational","keywords":["skills","growth","future"]},
+  {"question":"How does this role fit into your long-term career path?","category":"Career Goals","difficulty":"Medium","source_type":"Situational","keywords":["fit","plan","direction"]},
+  {"question":"What does success look like for you in the first 90 days here?","category":"Career Goals","difficulty":"Medium","source_type":"Open-Ended","keywords":["success","onboarding","goals"]},
+  {"question":"Why are you leaving your current role?","category":"Career Goals","difficulty":"Hard","source_type":"Behavioral","keywords":["motivation","change","growth"]},
+
+  {"question":"Tell me about a time you worked well within a team.","category":"Team Collaboration","difficulty":"Easy","source_type":"STAR-Based","keywords":["team","collaborate","support"]},
+  {"question":"How do you build trust with new teammates?","category":"Team Collaboration","difficulty":"Easy","source_type":"Behavioral","keywords":["trust","relationships","cooperation"]},
+  {"question":"Describe a project where you had to collaborate across different departments.","category":"Team Collaboration","difficulty":"Medium","source_type":"STAR-Based","keywords":["cross-functional","coordination","alignment"]},
+  {"question":"How do you handle a teammate who isn't pulling their weight?","category":"Team Collaboration","difficulty":"Hard","source_type":"Situational","keywords":["accountability","conflict","peer"]},
+  {"question":"Tell me about a time you had to lead a team through a difficult challenge.","category":"Team Collaboration","difficulty":"Hard","source_type":"STAR-Based","keywords":["leadership","challenge","team"]},
+
+  {"question":"Describe a time you handled a difficult situation professionally.","category":"Conflict Resolution","difficulty":"Medium","source_type":"Behavioral","keywords":["conflict","professional","resolve"]},
+  {"question":"Tell me about a conflict you had with a coworker and how you resolved it.","category":"Conflict Resolution","difficulty":"Medium","source_type":"STAR-Based","keywords":["disagreement","resolution","communication"]},
+  {"question":"How do you approach giving critical feedback to a peer?","category":"Conflict Resolution","difficulty":"Hard","source_type":"Situational","keywords":["feedback","diplomacy","honesty"]},
+  {"question":"Describe a time when you disagreed with your manager's decision.","category":"Conflict Resolution","difficulty":"Hard","source_type":"STAR-Based","keywords":["pushback","respect","disagreement"]},
+  {"question":"How do you de-escalate a tense situation with a client or stakeholder?","category":"Conflict Resolution","difficulty":"Hard","source_type":"Situational","keywords":["de-escalate","stakeholder","calm"]},
+
+  {"question":"What are your expectations from leadership in a company?","category":"Culture Fit","difficulty":"Medium","source_type":"Behavioral","keywords":["leadership","culture","values"]},
+  {"question":"Describe a workplace culture where you've done your best work.","category":"Culture Fit","difficulty":"Easy","source_type":"Open-Ended","keywords":["environment","culture","performance"]},
+  {"question":"How do you handle working in a fast-paced, ambiguous environment?","category":"Culture Fit","difficulty":"Medium","source_type":"Situational","keywords":["ambiguity","pace","resilience"]},
+  {"question":"What kind of management style brings out the best in you?","category":"Culture Fit","difficulty":"Easy","source_type":"Open-Ended","keywords":["management","style","preferences"]},
+  {"question":"Tell me about a time you felt truly valued at work.","category":"Culture Fit","difficulty":"Medium","source_type":"STAR-Based","keywords":["recognition","belonging","motivation"]},
+
+  {"question":"What motivates you to come to work every day?","category":"Motivation","difficulty":"Easy","source_type":"Open-Ended","keywords":["drive","passion","purpose"]},
+  {"question":"What kind of projects get you most excited?","category":"Motivation","difficulty":"Easy","source_type":"Open-Ended","keywords":["passion","interest","energy"]},
+  {"question":"Tell me about a time you went above and beyond what was asked.","category":"Motivation","difficulty":"Medium","source_type":"STAR-Based","keywords":["initiative","effort","dedication"]},
+  {"question":"Describe a time when you lost motivation at work and how you recovered.","category":"Motivation","difficulty":"Hard","source_type":"STAR-Based","keywords":["slump","recovery","resilience"]},
+  {"question":"What keeps you engaged when the work gets repetitive or tedious?","category":"Motivation","difficulty":"Medium","source_type":"Situational","keywords":["consistency","discipline","engagement"]},
+
+  {"question":"How do you motivate others in a leadership role?","category":"Leadership","difficulty":"Medium","source_type":"Situational","keywords":["inspire","lead","motivate"]},
+  {"question":"Tell me about a time you had to lead without authority.","category":"Leadership","difficulty":"Hard","source_type":"STAR-Based","keywords":["influence","authority","leadership"]},
+  {"question":"How do you develop the people on your team?","category":"Leadership","difficulty":"Hard","source_type":"Open-Ended","keywords":["mentorship","growth","coaching"]},
+  {"question":"Describe a time you made a tough call as a leader.","category":"Leadership","difficulty":"Hard","source_type":"STAR-Based","keywords":["decision","accountability","leadership"]},
+  {"question":"How do you set direction when the path is unclear?","category":"Leadership","difficulty":"Expert","source_type":"Situational","keywords":["vision","ambiguity","strategy"]},
+
+  {"question":"What tools or methods help you stay organized?","category":"Work Style","difficulty":"Easy","source_type":"Situational","keywords":["organization","productivity","tools"]},
+  {"question":"How do you manage your time when juggling multiple projects?","category":"Work Style","difficulty":"Medium","source_type":"Situational","keywords":["prioritization","time management","multitasking"]},
+  {"question":"Describe your approach to setting and hitting deadlines.","category":"Work Style","difficulty":"Medium","source_type":"Behavioral","keywords":["deadlines","planning","execution"]},
+  {"question":"How do you ensure quality in your work when under time pressure?","category":"Work Style","difficulty":"Hard","source_type":"Situational","keywords":["quality","pressure","tradeoff"]},
+  {"question":"Walk me through how you approach a complex problem from scratch.","category":"Work Style","difficulty":"Hard","source_type":"Open-Ended","keywords":["problem solving","methodology","structure"]},
+
+  {"question":"Tell me about a time you solved a problem creatively.","category":"Problem Solving","difficulty":"Medium","source_type":"STAR-Based","keywords":["creative","solution","innovation"]},
+  {"question":"Describe a situation where you had incomplete information and had to make a decision.","category":"Problem Solving","difficulty":"Hard","source_type":"STAR-Based","keywords":["uncertainty","judgment","decision"]},
+  {"question":"How do you approach debugging a complex issue you've never seen before?","category":"Problem Solving","difficulty":"Hard","source_type":"Situational","keywords":["debugging","methodology","persistence"]},
+  {"question":"Tell me about the most complex problem you've solved professionally.","category":"Problem Solving","difficulty":"Expert","source_type":"Open-Ended","keywords":["complexity","expertise","solution"]},
+  {"question":"How do you know when to escalate a problem vs. solve it yourself?","category":"Problem Solving","difficulty":"Medium","source_type":"Situational","keywords":["judgment","escalation","autonomy"]},
+
+  {"question":"How do you handle a high-pressure deadline?","category":"Stress Management","difficulty":"Medium","source_type":"Situational","keywords":["pressure","deadline","calm"]},
+  {"question":"Tell me about a time you failed and what you learned from it.","category":"Stress Management","difficulty":"Hard","source_type":"STAR-Based","keywords":["failure","learning","resilience"]},
+  {"question":"How do you maintain work-life balance during crunch periods?","category":"Stress Management","difficulty":"Medium","source_type":"Open-Ended","keywords":["balance","wellbeing","sustainability"]},
+  {"question":"Describe a time you had to deliver bad news to a stakeholder.","category":"Stress Management","difficulty":"Hard","source_type":"STAR-Based","keywords":["communication","bad news","accountability"]},
+  {"question":"How do you recognize and address burnout in yourself or your team?","category":"Stress Management","difficulty":"Expert","source_type":"Open-Ended","keywords":["burnout","wellbeing","awareness"]},
+
+  {"question":"How do you explain a complex technical concept to a non-technical audience?","category":"Communication","difficulty":"Medium","source_type":"Situational","keywords":["simplify","audience","clarity"]},
+  {"question":"Tell me about a time your communication style needed to adapt to your audience.","category":"Communication","difficulty":"Medium","source_type":"STAR-Based","keywords":["adapt","style","audience"]},
+  {"question":"How do you ensure alignment when working across time zones?","category":"Communication","difficulty":"Hard","source_type":"Situational","keywords":["async","remote","alignment"]},
+  {"question":"Describe a time a misunderstanding led to a mistake, and how you handled it.","category":"Communication","difficulty":"Hard","source_type":"STAR-Based","keywords":["misunderstanding","accountability","clarity"]},
+  {"question":"How do you structure updates to keep stakeholders informed without overwhelming them?","category":"Communication","difficulty":"Hard","source_type":"Situational","keywords":["reporting","stakeholders","conciseness"]},
+
+  {"question":"Tell me about a time you improved an existing process.","category":"Innovation","difficulty":"Medium","source_type":"STAR-Based","keywords":["improvement","initiative","process"]},
+  {"question":"Describe a time you proposed an idea that was initially rejected.","category":"Innovation","difficulty":"Hard","source_type":"STAR-Based","keywords":["persistence","resilience","advocacy"]},
+  {"question":"How do you stay current with trends in your field?","category":"Innovation","difficulty":"Easy","source_type":"Open-Ended","keywords":["learning","industry","growth"]},
+  {"question":"Tell me about a project where you had to be especially creative.","category":"Innovation","difficulty":"Medium","source_type":"STAR-Based","keywords":["creativity","innovation","solution"]},
+  {"question":"How do you evaluate whether a new idea is worth pursuing?","category":"Innovation","difficulty":"Hard","source_type":"Situational","keywords":["evaluation","judgment","risk"]},
+
+  {"question":"Describe a time you made a decision with limited data.","category":"Decision Making","difficulty":"Hard","source_type":"STAR-Based","keywords":["uncertainty","judgment","risk"]},
+  {"question":"How do you weigh trade-offs when making important decisions?","category":"Decision Making","difficulty":"Hard","source_type":"Open-Ended","keywords":["tradeoffs","analysis","judgment"]},
+  {"question":"Tell me about a decision you regret and what you'd do differently.","category":"Decision Making","difficulty":"Expert","source_type":"Behavioral","keywords":["reflection","accountability","learning"]},
+  {"question":"How do you involve others in the decision-making process?","category":"Decision Making","difficulty":"Medium","source_type":"Situational","keywords":["consensus","collaboration","inclusive"]},
+  {"question":"Describe a time you had to make a fast decision without time to fully analyze.","category":"Decision Making","difficulty":"Hard","source_type":"STAR-Based","keywords":["speed","judgment","pressure"]},
+
+  {"question":"Tell me about a situation where you faced an ethical dilemma at work.","category":"Ethics & Integrity","difficulty":"Hard","source_type":"Behavioral","keywords":["ethics","integrity","honesty"]},
+  {"question":"How would you handle discovering that a colleague was acting unethically?","category":"Ethics & Integrity","difficulty":"Hard","source_type":"Situational","keywords":["integrity","accountability","courage"]},
+  {"question":"Describe a time you had to say no to something you were asked to do.","category":"Ethics & Integrity","difficulty":"Medium","source_type":"STAR-Based","keywords":["boundaries","integrity","pushback"]},
+
+  {"question":"How do you handle a difficult or unreasonable client?","category":"Customer Service","difficulty":"Medium","source_type":"Situational","keywords":["patience","empathy","professionalism"]},
+  {"question":"Tell me about a time you turned a negative customer experience into a positive one.","category":"Customer Service","difficulty":"Hard","source_type":"STAR-Based","keywords":["recovery","empathy","resolution"]},
+  {"question":"How do you manage customer expectations when you can't deliver what they want?","category":"Customer Service","difficulty":"Hard","source_type":"Situational","keywords":["expectations","honesty","alternatives"]},
+
+  {"question":"What programming languages are you most proficient in and why?","category":"Technical","difficulty":"Easy","source_type":"Open-Ended","keywords":["skills","languages","expertise"]},
+  {"question":"Describe your experience with system design and architecture.","category":"Technical","difficulty":"Hard","source_type":"Open-Ended","keywords":["architecture","design","scalability"]},
+  {"question":"How do you approach code reviews?","category":"Technical","difficulty":"Medium","source_type":"Behavioral","keywords":["code review","quality","collaboration"]},
+  {"question":"Tell me about the most technically challenging project you've worked on.","category":"Technical","difficulty":"Hard","source_type":"Open-Ended","keywords":["complexity","problem solving","engineering"]},
+  {"question":"How do you ensure your code is maintainable and scalable?","category":"Technical","difficulty":"Medium","source_type":"Situational","keywords":["clean code","maintainability","best practices"]},
+  {"question":"How do you approach testing your own work?","category":"Technical","difficulty":"Medium","source_type":"Behavioral","keywords":["testing","quality","thoroughness"]},
+  {"question":"Describe a time you had to optimize a slow system or process.","category":"Technical","difficulty":"Hard","source_type":"STAR-Based","keywords":["performance","optimization","debugging"]},
+  {"question":"How do you keep technical debt under control?","category":"Technical","difficulty":"Expert","source_type":"Open-Ended","keywords":["technical debt","refactoring","pragmatism"]},
+  {"question":"Explain a complex technical decision you made and how you justified it.","category":"Technical","difficulty":"Expert","source_type":"Open-Ended","keywords":["decision","trade-offs","justification"]},
+
+  {"question":"What data analysis tools are you most comfortable with?","category":"Data & Analytics","difficulty":"Easy","source_type":"Open-Ended","keywords":["tools","data","analytics"]},
+  {"question":"Tell me about a time you used data to change a business decision.","category":"Data & Analytics","difficulty":"Hard","source_type":"STAR-Based","keywords":["data-driven","impact","analysis"]},
+  {"question":"How do you communicate data insights to non-technical stakeholders?","category":"Data & Analytics","difficulty":"Medium","source_type":"Situational","keywords":["visualization","storytelling","clarity"]},
+
+  {"question":"How do you prioritize product features when resources are limited?","category":"Product Thinking","difficulty":"Hard","source_type":"Situational","keywords":["prioritization","trade-offs","product"]},
+  {"question":"Describe how you gather and incorporate user feedback.","category":"Product Thinking","difficulty":"Medium","source_type":"Behavioral","keywords":["feedback","user research","iteration"]},
+  {"question":"How do you define and measure product success?","category":"Product Thinking","difficulty":"Hard","source_type":"Open-Ended","keywords":["metrics","success","KPIs"]},
+
+  {"question":"How do you build a go-to-market strategy for a new product?","category":"Strategy & Business","difficulty":"Expert","source_type":"Open-Ended","keywords":["GTM","strategy","market"]},
+  {"question":"Tell me about a time you had to pivot strategy mid-execution.","category":"Strategy & Business","difficulty":"Expert","source_type":"STAR-Based","keywords":["pivot","agility","strategy"]},
+  {"question":"How do you align your team's work with company-level goals?","category":"Strategy & Business","difficulty":"Hard","source_type":"Open-Ended","keywords":["alignment","OKRs","direction"]}
+]

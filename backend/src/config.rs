@@ -12,6 +12,8 @@ pub struct Config {
     pub google_client_id: Option<String>,
     pub google_client_secret: Option<String>,
     pub frontend_url: String,
+    pub platform_claude_key: Option<String>,
+    pub platform_sarvam_key: Option<String>,
 }
 
 impl Config {
@@ -35,6 +37,8 @@ impl Config {
             google_client_secret: std::env::var("GOOGLE_CLIENT_SECRET").ok(),
             frontend_url: std::env::var("FRONTEND_URL")
                 .unwrap_or_else(|_| "http://localhost:5173".to_string()),
+            platform_claude_key: std::env::var("PLATFORM_CLAUDE_KEY").ok(),
+            platform_sarvam_key: std::env::var("PLATFORM_SARVAM_KEY").ok(),
         })
     }
 }

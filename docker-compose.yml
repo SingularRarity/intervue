@@ -29,12 +29,16 @@ services:
   backend:
     build: ./backend
     container_name: ai-interview-backend
+    env_file:
+      - ./backend/.env
     environment:
       DATABASE_URL: postgres://postgres:postgres@postgres:5432/ai_interview
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
       PORT: 8080
       REDIS_URL: redis://redis:6379
       APP_ENV: production
+      FRONTEND_URL: http://localhost:3001
+      BACKEND_URL: http://localhost:8080
     ports:
       - "8080:8080"
     depends_on:

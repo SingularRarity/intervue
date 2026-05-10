@@ -199,6 +199,47 @@ Generate 8-12 targeted interview questions.", resume)
         self.call_claude(api_key, system_prompt, &user_prompt).await
     }
 
+    /// Parse a job description and extract structured template data
+    pub async fn parse_jd(
+        &self,
+        api_key: &str,
+        jd_text: &str,
+    ) -> anyhow::Result<JdParseResult> {
+        let system_prompt = r#"You are an expert HR analyst. Parse the given job description and extract structured information for building an interview template.
+
+Return ONLY a valid JSON object (no markdown, no code fences) with exactly these fields:
+{
+  "title": "job title / role name",
+  "summary": "2-3 sentence summary of the role and key responsibilities, suitable for an interview template description",
+  "topics": ["skill1", "skill2", "skill3"],
+  "difficulty": "Easy|Medium|Hard|Expert",
+  "interview_type": "Technical|Behavioral|Mixed|CultureFit|Screening",
+  "duration_minutes": 30,
+  "language": "en"
+}
+
+Rules:
+- title: exact job title from the JD
+- summary: concise, interviewer-facing description; focus on what will be assessed
+- topics: 3-8 key skills/competencies most relevant to screen for (be specific, e.g. "React", "System Design", "SQL", not generic)
+- difficulty: infer from seniority (junior→Easy, mid→Medium, senior→Hard, staff/principal→Expert)
+- interview_type: Technical for engineering roles, Behavioral for people/ops roles, Mixed for most, CultureFit for culture-screen, Screening for early-stage
+- duration_minutes: 20 for screening, 30 for standard, 45 for senior, 60 for expert
+- language: always "en" unless JD is in another language"#;
+
+        let response = self.call_claude(api_key, system_prompt, jd_text).await?;
+
+        // Strip any accidental markdown fences
+        let clean = response.trim()
+            .trim_start_matches("```json")
+            .trim_start_matches("```")
+            .trim_end_matches("```")
+            .trim();
+
+        serde_json::from_str::<JdParseResult>(clean)
+            .map_err(|e| anyhow::anyhow!("Failed to parse JD result: {}. Raw: {}", e, clean))
+    }
+
     async fn call_claude(
         &self,
         api_key: &str,
@@ -272,6 +313,17 @@ pub struct InterviewQuestion {
     pub expected_answer_points: Vec<String>,
     pub weight: f32,
     pub skill: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct JdParseResult {
+    pub title: String,
+    pub summary: String,
+    pub topics: Vec<String>,
+    pub difficulty: String,
+    pub interview_type: String,
+    pub duration_minutes: i32,
+    pub language: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

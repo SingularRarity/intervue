@@ -67,6 +67,11 @@ export const PLAN_LABELS: Record<PlanTier, string> = {
   enterprise: 'Enterprise',
 }
 
+// Startup+ plans can/should provide their own API keys (BYOK). Free/Individual use platform keys.
+export function canUseByok(plan: PlanTier): boolean {
+  return PLAN_RANK[plan] >= PLAN_RANK['starter']
+}
+
 export const ROLE_LABELS: Record<TenantRole, string> = {
   tenant_admin: 'Admin',
   manager: 'Manager',

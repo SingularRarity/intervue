@@ -13,11 +13,31 @@ pub struct InterviewEngine {
     db: Database,
     sarvam: SarvamService,
     claude: ClaudeService,
+    platform_claude_key: Option<String>,
+    platform_sarvam_key: Option<String>,
 }
 
 impl InterviewEngine {
-    pub fn new(db: Database, sarvam: SarvamService, claude: ClaudeService) -> Self {
-        Self { db, sarvam, claude }
+    pub fn new(
+        db: Database,
+        sarvam: SarvamService,
+        claude: ClaudeService,
+        platform_claude_key: Option<String>,
+        platform_sarvam_key: Option<String>,
+    ) -> Self {
+        Self { db, sarvam, claude, platform_claude_key, platform_sarvam_key }
+    }
+
+    fn resolve_claude_key(&self, tenant_key: Option<String>) -> anyhow::Result<String> {
+        tenant_key
+            .or_else(|| self.platform_claude_key.clone())
+            .ok_or_else(|| anyhow::anyhow!("No AI API key configured. Please add your API key in Settings or contact support."))
+    }
+
+    fn resolve_sarvam_key(&self, tenant_key: Option<String>) -> anyhow::Result<String> {
+        tenant_key
+            .or_else(|| self.platform_sarvam_key.clone())
+            .ok_or_else(|| anyhow::anyhow!("No speech API key configured. Please add your API key in Settings or contact support."))
     }
 
     /// Process audio chunk from candidate during interview
@@ -30,10 +50,8 @@ impl InterviewEngine {
         let session = self.get_session_with_tenant(session_id).await?;
         let tenant = self.get_tenant(session.tenant_id).await?;
 
-        let sarvam_key = tenant.sarvam_api_key
-            .ok_or_else(|| anyhow::anyhow!("Sarvam API key not configured"))?;
-        let claude_key = tenant.claude_api_key
-            .ok_or_else(|| anyhow::anyhow!("Claude API key not configured"))?;
+        let sarvam_key = self.resolve_sarvam_key(tenant.sarvam_api_key)?;
+        let claude_key = self.resolve_claude_key(tenant.claude_api_key)?;
 
         // Extract audio bytes from base64
         let audio_base64 = audio_data.get("audio")
@@ -93,8 +111,7 @@ impl InterviewEngine {
         let session = self.get_session_with_tenant(session_id).await?;
         let tenant = self.get_tenant(session.tenant_id).await?;
 
-        let claude_key = tenant.claude_api_key
-            .ok_or_else(|| anyhow::anyhow!("Claude API key not configured"))?;
+        let claude_key = self.resolve_claude_key(tenant.claude_api_key)?;
 
         // Store candidate message
         self.add_message(session_id, "candidate", text, None).await?;
@@ -126,8 +143,7 @@ impl InterviewEngine {
     ) -> anyhow::Result<serde_json::Value> {
         let session = self.get_session_with_tenant(session_id).await?;
         let tenant = self.get_tenant(session.tenant_id).await?;
-        let claude_key = tenant.claude_api_key
-            .ok_or_else(|| anyhow::anyhow!("Claude API key not configured"))?;
+        let claude_key = self.resolve_claude_key(tenant.claude_api_key)?;
 
         let template = self.get_template(session.template_id).await?;
         let candidate = self.get_candidate(session.candidate_id).await?;

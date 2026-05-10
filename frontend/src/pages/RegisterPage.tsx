@@ -26,7 +26,7 @@ export default function RegisterPage() {
       const res = await tenantApi.register(form)
       setAuth(res.data.token, res.data.tenant)
       toast.success('Account created successfully!')
-      navigate('/dashboard')
+      navigate('/onboarding')
     } catch (err: any) {
       toast.error(err.response?.data?.error || 'Registration failed')
     } finally {
@@ -35,25 +35,29 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-canvas flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col">
       {/* Minimal nav */}
-      <nav className="px-8 py-5 border-b border-dark-200 bg-white">
-        <Link to="/" className="font-display text-[17px] text-dark-900 leading-none">
-          Inter<span className="text-primary-500">vue</span>
+      <nav className="px-8 py-4 border-b border-dark-100 bg-white flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-2">
+          <span className="font-display italic text-dark-900 text-[17px] tracking-tight">Intervue</span>
+          <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-primary-500/70 border border-primary-500/30 px-1.5 py-0.5 rounded">Alpha</span>
+        </Link>
+        <Link to="/login" className="text-[13px] text-dark-500 hover:text-dark-900 font-medium transition-colors">
+          Already have an account? <span className="text-primary-600">Sign in</span>
         </Link>
       </nav>
 
-      <div className="flex-1 flex items-center justify-center px-6 py-12">
+      <div className="flex-1 flex items-center justify-center px-6 py-12 bg-[#f8f9fb]">
         <div className="w-full max-w-lg">
-          <div className="mb-8">
-            <h1 className="font-display text-3xl text-dark-900 mb-1.5">Create your account</h1>
-            <p className="text-dark-500 text-[15px]">Start conducting AI interviews in minutes</p>
+          <div className="mb-8 text-center">
+            <h1 className="font-display text-[36px] text-dark-900 mb-2 tracking-tight">Start your free trial</h1>
+            <p className="text-dark-400 text-[14px]">15 days full access · No credit card required</p>
           </div>
 
           {/* Google OAuth shortcut */}
           <a
             href="/api/v1/oauth/google"
-            className="flex items-center justify-center gap-3 w-full h-12 border border-dark-200 bg-white hover:bg-dark-50 rounded-xl text-[11px] font-bold uppercase tracking-wide text-dark-600 transition-colors mb-4"
+            className="flex items-center justify-center gap-3 w-full h-11 border border-dark-200 bg-white hover:bg-dark-50 rounded-md text-[13px] font-medium text-dark-700 transition-colors mb-4 shadow-sm"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -69,11 +73,11 @@ export default function RegisterPage() {
               <div className="w-full border-t border-dark-200" />
             </div>
             <div className="relative flex justify-center">
-              <span className="bg-canvas px-3 text-[10px] uppercase tracking-widest text-dark-400">or continue with email</span>
+              <span className="bg-[#f8f9fb] px-3 text-[11px] text-dark-400">or sign up with email</span>
             </div>
           </div>
 
-          <div className="bg-white border border-dark-200 rounded-xl p-8">
+          <div className="bg-white border border-dark-200 rounded-xl p-8 shadow-sm">
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-[0.08em] text-dark-400 mb-1.5">Company Name</label>
@@ -178,11 +182,23 @@ export default function RegisterPage() {
             </form>
           </div>
 
-          <p className="text-center text-dark-500 text-sm mt-6">
+          <p className="text-center text-dark-400 text-[13px] mt-6">
             Already have an account?{' '}
-            <Link to="/login" className="text-primary-600 hover:text-primary-700 font-medium">
-              Sign In
+            <Link to="/login" className="text-dark-900 font-semibold hover:text-primary-600 transition-colors">
+              Sign in
             </Link>
+          </p>
+
+          <p className="text-center text-dark-300 text-[11px] mt-4">
+            A product by{' '}
+            <a
+              href="https://singularraritylabs.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-dark-400 hover:text-dark-700 transition-colors"
+            >
+              SingularRarity Labs
+            </a>
           </p>
         </div>
       </div>

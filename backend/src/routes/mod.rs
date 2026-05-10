@@ -13,6 +13,7 @@ pub mod candidate_portal;
 pub mod oauth;
 pub mod billing;
 pub mod admin;
+pub mod questions;
 
 use axum::{http::StatusCode, response::Json};
 use serde_json::json;

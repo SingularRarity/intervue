@@ -8,6 +8,7 @@ import {
 import { analyticsApi, interviewApi } from '@/lib/api'
 import { formatDate, getScoreColor } from '@/lib/utils'
 import { useAuthStore } from '@/lib/store'
+import { canUseByok } from '@/lib/permissions'
 
 function CandidateAvatar({ name }: { name: string }) {
   const initials = name
@@ -49,8 +50,9 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function Dashboard() {
-  const { tenant } = useAuthStore()
-  const needsApiKeys = !tenant?.has_claude_key || !tenant?.has_sarvam_key
+  const { tenant, plan } = useAuthStore()
+  // Only show the key nag for Startup+ plans that opted into BYOK — Free/Individual use platform keys
+  const needsApiKeys = canUseByok(plan) && (!tenant?.has_claude_key || !tenant?.has_sarvam_key)
 
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['dashboard-stats'],
@@ -79,7 +81,7 @@ export default function Dashboard() {
             <Key className="w-5 h-5 text-amber-500 shrink-0" />
             <p className="text-sm text-amber-800">
               <span className="font-semibold">Add your API keys to start conducting interviews.</span>{' '}
-              You need a Claude key and a Sarvam key to use the AI interviewer.
+              You need to add your API keys to use the AI interviewer.
             </p>
           </div>
           <Link to="/settings" className="btn-secondary shrink-0 text-xs py-1.5 px-3">

@@ -61,7 +61,13 @@ async fn main() -> anyhow::Result<()> {
 
     let sarvam = SarvamService::new();
     let claude = ClaudeService::new();
-    let interview_engine = InterviewEngine::new(db.clone(), sarvam.clone(), claude.clone());
+    let interview_engine = InterviewEngine::new(
+        db.clone(),
+        sarvam.clone(),
+        claude.clone(),
+        config.platform_claude_key.clone(),
+        config.platform_sarvam_key.clone(),
+    );
     let permissions = Arc::new(PermissionService::new(db.pool().clone()).await?);
 
     let state = Arc::new(AppState {
@@ -131,6 +137,7 @@ async fn main() -> anyhow::Result<()> {
         )
 
         // ---- Protected: interview templates ----
+        .route("/api/v1/interviews/parse-jd", post(routes::interview::parse_jd))
         .route(
             "/api/v1/interviews",
             post(routes::interview::create_interview_template)
@@ -220,6 +227,10 @@ async fn main() -> anyhow::Result<()> {
             get(routes::analytics::session_analytics)
                 .route_layer(perm!("analytics", "advanced", PlanTier::Growth)),
         )
+
+        // ---- Question bank (public — used during template creation) ----
+        .route("/api/v1/questions", get(routes::questions::list_questions))
+        .route("/api/v1/questions/categories", get(routes::questions::list_categories))
 
         // ---- WebSocket ----
         .route("/ws/interview/:session_id", get(routes::ws::interview_websocket))

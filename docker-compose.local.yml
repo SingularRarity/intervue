@@ -8,6 +8,8 @@ services:
       REDIS_URL: redis://redis:6379
       PORT: 8080
       RUST_LOG: debug
+      PLATFORM_CLAUDE_KEY: ""
+      PLATFORM_SARVAM_KEY: ""
     volumes:
       - ./backend/migrations:/app/migrations
       - ./backend/src:/app/src:ro  # source visible inside container for debugging

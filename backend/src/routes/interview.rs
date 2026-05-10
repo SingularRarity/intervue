@@ -9,6 +9,8 @@ use chrono::Utc;
 
 use validator::Validate;
 
+use serde::Deserialize;
+
 use crate::{
     AppState,
     models::*,
@@ -343,4 +345,41 @@ pub async fn submit_feedback(
     .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;
 
     Ok(Json(json!({ "message": "Feedback submitted successfully" })))
+}
+
+#[derive(Deserialize)]
+pub struct ParseJdRequest {
+    pub jd_text: String,
+}
+
+pub async fn parse_jd(
+    State(state): State<Arc<AppState>>,
+    claims: axum::Extension<AuthClaims>,
+    Json(req): Json<ParseJdRequest>,
+) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
+    if req.jd_text.trim().is_empty() {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            Json(json!({ "error": "jd_text is required" })),
+        ));
+    }
+
+    // Resolve Claude key: tenant key → platform key
+    let tenant = sqlx::query_as::<_, Tenant>("SELECT * FROM tenants WHERE id = $1")
+        .bind(claims.sub)
+        .fetch_one(state.db.pool())
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;
+
+    let claude_key = tenant.claude_api_key
+        .or_else(|| state.config.platform_claude_key.clone())
+        .ok_or_else(|| (
+            StatusCode::BAD_REQUEST,
+            Json(json!({ "error": "No AI API key configured" })),
+        ))?;
+
+    let result = state.claude.parse_jd(&claude_key, &req.jd_text).await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;
+
+    Ok(Json(serde_json::to_value(&result).unwrap_or_default()))
 }

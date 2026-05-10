@@ -22,6 +22,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage'
 import OAuthCallbackPage from './pages/OAuthCallbackPage'
 import AdminLoginPage from './pages/AdminLoginPage'
 import AdminPage from './pages/AdminPage'
+import OnboardingPage from './pages/OnboardingPage'
 
 function App() {
   const { token } = useAuthStore()
@@ -41,6 +42,12 @@ function App() {
       {/* God admin console — its own layout */}
       <Route path="/admin/login" element={<AdminLoginPage />} />
       <Route path="/admin" element={<AdminPage />} />
+
+      {/* Onboarding — no sidebar, requires auth */}
+      <Route
+        path="/onboarding"
+        element={token ? <OnboardingPage /> : <Navigate to="/login" />}
+      />
 
       {/* Video interview — no sidebar */}
       <Route

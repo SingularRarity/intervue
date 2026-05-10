@@ -13,21 +13,21 @@ export default function ResetPasswordPage() {
           <p className="text-dark-400 text-sm leading-relaxed">
             Password reset is handled directly by our team. Email us at{' '}
             <a
-              href="mailto:founders@interviewai.dev"
+              href="mailto:info@singularraritylabs.com"
               className="text-primary-400 hover:text-primary-300 transition-colors"
             >
-              founders@interviewai.dev
+              info@singularraritylabs.com
             </a>{' '}
             and we'll get you sorted within 24 hours.
           </p>
         </div>
 
         <a
-          href="mailto:founders@interviewai.dev"
+          href="mailto:info@singularraritylabs.com"
           className="btn-primary-dark w-full justify-center mb-4"
         >
           <Mail className="w-4 h-4" />
-          Email founders@interviewai.dev
+          Email info@singularraritylabs.com
         </a>
 
         <div className="text-center">

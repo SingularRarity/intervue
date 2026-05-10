@@ -31,82 +31,88 @@ export default function LoginPage() {
   return (
     <main className="flex h-screen w-full overflow-hidden">
       {/* Left — dark brand panel (hidden on mobile) */}
-      <section className="hidden lg:flex flex-col justify-between w-1/2 bg-[#0f172a] p-12 relative overflow-hidden">
+      <section className="hidden lg:flex flex-col justify-between w-[52%] bg-[#0a0f1e] p-14 relative overflow-hidden">
         {/* Logo */}
         <div className="z-10">
-          <Link to="/" className="font-display italic text-white text-xl tracking-tight">
-            Intervue
+          <Link to="/" className="flex items-center gap-2">
+            <span className="font-display italic text-white text-[18px] tracking-tight">Intervue</span>
+            <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-primary-500/60 border border-primary-500/20 px-1.5 py-0.5 rounded">Alpha</span>
           </Link>
         </div>
 
         {/* Quote + product preview */}
         <div className="z-10 flex flex-col gap-10 max-w-lg">
-          <blockquote className="font-display italic text-white text-[40px] leading-tight">
-            "Precision is the only metric that matters in high-stakes hiring."
-          </blockquote>
           <div>
-            <p className="text-primary-400 text-xs font-bold uppercase tracking-widest">Director of Talent @ NexCore</p>
-            <p className="text-white/30 text-xs mt-1 font-mono">Scale 2024 Operations</p>
+            <blockquote className="font-display text-white text-[38px] leading-[1.15] tracking-tight mb-5">
+              "Objective scoring changed how we evaluate candidates. No more gut-feel decisions."
+            </blockquote>
+            <p className="text-primary-400 text-[11px] font-bold uppercase tracking-[0.15em]">Head of Talent · Razorpay</p>
           </div>
 
-          {/* Mini product mockup card */}
-          <div className="border border-white/10 bg-white/5 rounded-xl p-4 backdrop-blur-sm shadow-2xl">
-            <div className="flex items-center justify-between mb-3 pb-2 border-b border-white/10">
+          {/* Mini product mockup */}
+          <div className="border border-white/8 bg-white/4 rounded-xl p-5 backdrop-blur-sm">
+            <div className="flex items-center gap-2 mb-4">
               <div className="flex gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-white/20" />
-                <div className="w-2 h-2 rounded-full bg-white/20" />
-                <div className="w-2 h-2 rounded-full bg-white/20" />
+                {[1, 2, 3].map((i) => <div key={i} className="w-2 h-2 rounded-full bg-white/15" />)}
               </div>
-              <span className="text-white/30 text-[10px] uppercase tracking-widest font-mono">Score Calibration v2.4</span>
+              <span className="text-white/20 text-[9px] uppercase tracking-widest font-mono ml-1">intervue · scorecard</span>
             </div>
-            {/* Mini bar chart */}
-            <div className="flex items-end gap-1 h-16 mt-2">
-              {[40, 55, 70, 85, 65, 90, 75, 95].map((h, i) => (
-                <div
-                  key={i}
-                  className="flex-1 bg-primary-500/30 rounded-t-sm"
-                  style={{ height: `${h}%` }}
-                />
+            <div className="flex items-end gap-0.5 h-14 mb-4">
+              {[40, 55, 70, 85, 65, 90, 75, 95, 80, 68].map((h, i) => (
+                <div key={i} className="flex-1 bg-primary-500/25 rounded-sm" style={{ height: `${h}%` }} />
               ))}
             </div>
-            <div className="mt-3 flex items-center justify-between">
-              <span className="text-primary-400 text-[10px] font-bold uppercase tracking-wider">Real-time Analysis</span>
-              <span className="text-white text-xs font-mono">Match: 98%</span>
+            <div className="grid grid-cols-3 gap-2">
+              {[{ l: 'Technical', v: '87' }, { l: 'Communication', v: '91' }, { l: 'Overall', v: '89' }].map((s) => (
+                <div key={s.l} className="bg-white/5 border border-white/8 rounded-md p-2 text-center">
+                  <p className="text-[8px] uppercase tracking-widest text-white/20 mb-1">{s.l}</p>
+                  <p className="text-white font-semibold text-[16px] font-mono">{s.v}</p>
+                </div>
+              ))}
             </div>
           </div>
+
+          <p className="text-white/20 text-[11px] uppercase tracking-[0.2em]">Structured hiring for growing teams.</p>
         </div>
 
-        {/* Footer tagline */}
+        {/* Footer */}
         <div className="z-10">
-          <p className="text-white/20 text-[10px] uppercase tracking-[0.2em]">Serious software for serious hiring.</p>
+          <a
+            href="https://singularraritylabs.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-white/20 hover:text-white/40 text-[10px] uppercase tracking-[0.15em] font-medium transition-colors"
+          >
+            A SingularRarity Labs product
+          </a>
         </div>
 
         {/* Background glow */}
-        <div className="absolute top-0 right-0 w-full h-full pointer-events-none">
-          <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-primary-500/10 rounded-full blur-[120px]" />
-          <div className="absolute bottom-[-10%] left-[-10%] w-96 h-96 bg-purple-900/20 rounded-full blur-[120px]" />
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-[-20%] right-[-10%] w-80 h-80 bg-primary-500/8 rounded-full blur-[100px]" />
+          <div className="absolute bottom-[-10%] left-[-10%] w-80 h-80 bg-purple-900/15 rounded-full blur-[100px]" />
         </div>
       </section>
 
       {/* Right — form panel */}
-      <section className="w-full lg:w-1/2 flex items-center justify-center bg-[#f8f7f5] px-8 py-12">
-        <div className="w-full max-w-[420px] flex flex-col gap-10">
+      <section className="w-full lg:w-[48%] flex items-center justify-center bg-white px-8 py-12 border-l border-dark-100">
+        <div className="w-full max-w-[400px] flex flex-col gap-8">
           {/* Mobile logo */}
           <div className="lg:hidden">
-            <Link to="/" className="font-display italic text-dark-900 text-xl tracking-tight">
+            <Link to="/" className="font-display italic text-dark-900 text-[18px] tracking-tight">
               Intervue
             </Link>
           </div>
 
           <div>
-            <h1 className="font-display text-[48px] text-dark-900 leading-tight mb-2">Welcome back</h1>
-            <p className="text-dark-500 text-sm">Enter your credentials to access the workspace.</p>
+            <h1 className="font-display text-[40px] text-dark-900 leading-tight mb-1.5 tracking-tight">Welcome back</h1>
+            <p className="text-dark-400 text-[14px]">Sign in to your workspace to continue.</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
-              <label className="block text-[11px] font-bold uppercase tracking-widest text-dark-400 mb-1.5">
-                Corporate Email
+              <label className="block text-[11px] font-bold uppercase tracking-[0.1em] text-dark-400 mb-1.5">
+                Work Email
               </label>
               <input
                 type="email"
@@ -120,11 +126,11 @@ export default function LoginPage() {
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-[11px] font-bold uppercase tracking-widest text-dark-400">
+                <label className="text-[11px] font-bold uppercase tracking-[0.1em] text-dark-400">
                   Password
                 </label>
-                <Link to="/reset-password" className="text-[11px] text-dark-400 hover:text-dark-700 font-medium">
-                  Recovery options
+                <Link to="/reset-password" className="text-[11px] text-primary-500 hover:text-primary-600 font-medium transition-colors">
+                  Forgot password?
                 </Link>
               </div>
               <div className="relative">
@@ -149,25 +155,25 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-12 bg-[#0f172a] hover:bg-dark-800 text-white text-[11px] font-bold uppercase tracking-widest rounded-lg transition-all active:scale-[0.98] mt-1 flex items-center justify-center gap-2"
+              className="w-full h-11 bg-[#0a0f1e] hover:bg-dark-800 text-white text-[13px] font-semibold rounded-md transition-all active:scale-[0.99] mt-1 flex items-center justify-center gap-2 shadow-sm"
             >
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Authenticate Access'}
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Sign In'}
             </button>
 
             {/* Divider */}
-            <div className="relative py-2">
+            <div className="relative py-1">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-dark-200" />
+                <div className="w-full border-t border-dark-100" />
               </div>
               <div className="relative flex justify-center">
-                <span className="bg-[#f8f7f5] px-3 text-[10px] uppercase tracking-widest text-dark-400">Identity Providers</span>
+                <span className="bg-white px-3 text-[11px] text-dark-400">or continue with</span>
               </div>
             </div>
 
             {/* Google OAuth */}
             <a
               href="/api/v1/oauth/google"
-              className="flex items-center justify-center gap-3 h-10 border border-dark-200 bg-white hover:bg-dark-50 rounded-lg text-[11px] font-bold uppercase tracking-wide text-dark-600 transition-colors w-full"
+              className="flex items-center justify-center gap-3 h-11 border border-dark-200 bg-white hover:bg-dark-50 rounded-md text-[13px] font-medium text-dark-700 transition-colors w-full shadow-sm"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -179,11 +185,11 @@ export default function LoginPage() {
             </a>
           </form>
 
-          <div className="pt-6 border-t border-dark-200">
-            <p className="text-[11px] text-dark-400 leading-relaxed">
+          <div className="pt-4 border-t border-dark-100">
+            <p className="text-[13px] text-dark-400">
               Don't have an account?{' '}
-              <Link to="/register" className="text-dark-900 font-semibold underline decoration-primary-500 underline-offset-4">
-                Get Started
+              <Link to="/register" className="text-dark-900 font-semibold hover:text-primary-600 transition-colors">
+                Start free trial
               </Link>
             </p>
           </div>

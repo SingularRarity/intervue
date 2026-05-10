@@ -92,7 +92,7 @@ export default function Layout() {
         {/* New Campaign CTA */}
         <div className="px-5 mt-6">
           <button
-            onClick={() => navigate('/templates')}
+            onClick={() => navigate('/templates?new=1')}
             className="w-full flex items-center justify-center gap-2 bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold py-2.5 rounded-md transition-colors"
           >
             <Plus className="w-4 h-4" />
@@ -113,11 +113,11 @@ export default function Layout() {
           </div>
 
           {/* Alpha feedback CTA */}
-          <div className="mx-3 mb-3 p-3 rounded-lg bg-primary-500/10 border border-primary-500/20">
-            <p className="text-primary-300 text-[11px] font-semibold mb-0.5">Alpha Program</p>
-            <p className="text-white/35 text-[10px] leading-relaxed mb-2">Help us improve. Share what's broken or missing.</p>
+          <div className="mx-3 mb-2 p-3 rounded-lg bg-primary-500/8 border border-primary-500/15">
+            <p className="text-primary-300 text-[10px] font-bold uppercase tracking-wider mb-1">Alpha Program</p>
+            <p className="text-white/30 text-[10px] leading-relaxed mb-2">Help shape the product. Share feedback directly.</p>
             <a
-              href="mailto:founders@interviewai.dev?subject=InterviewAI%20Feedback"
+              href="mailto:info@singularraritylabs.com?subject=Intervue%20Feedback"
               className="flex items-center gap-1 text-primary-400 hover:text-primary-300 text-[10px] font-bold uppercase tracking-wider transition-colors"
             >
               Send Feedback
@@ -126,12 +126,35 @@ export default function Layout() {
           </div>
 
           <a
-            href="mailto:founders@interviewai.dev"
-            className="flex items-center gap-3 px-4 py-2 text-white/30 hover:text-white text-xs uppercase tracking-widest transition-colors"
+            href="https://discord.gg/9wbpzut9s"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 px-4 py-2 text-white/25 hover:text-white/60 text-[11px] transition-colors"
           >
-            <MessageCircle className="w-4 h-4 shrink-0" />
-            Contact Support
+            <MessageCircle className="w-3.5 h-3.5 shrink-0" />
+            Discord Community
           </a>
+          <a
+            href="https://chat.whatsapp.com/Gtyhl4P1R0sLrpyueiBMXN"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 px-4 py-2 text-white/25 hover:text-white/60 text-[11px] transition-colors"
+          >
+            <MessageCircle className="w-3.5 h-3.5 shrink-0" />
+            WhatsApp Support
+          </a>
+
+          {/* SingularRarityLabs attribution */}
+          <div className="mx-4 mt-2 mb-1 pt-2 border-t border-white/5">
+            <a
+              href="https://singularraritylabs.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[9px] text-white/20 hover:text-white/40 uppercase tracking-[0.12em] font-medium transition-colors"
+            >
+              A SingularRarity Labs product
+            </a>
+          </div>
 
           {/* User row */}
           <div className="mx-4 mt-3 pt-3 border-t border-white/5 flex items-center gap-2.5">

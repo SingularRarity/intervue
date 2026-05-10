@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Key, Shield, Building2, Eye, EyeOff, Loader2, Save, CheckCircle } from 'lucide-react'
+import { Key, Shield, Building2, Eye, EyeOff, Loader2, Save, CheckCircle, Zap, Sparkles } from 'lucide-react'
 import { tenantApi } from '@/lib/api'
 import { useAuthStore } from '@/lib/store'
+import { canUseByok } from '@/lib/permissions'
 import toast from 'react-hot-toast'
 
 export default function SettingsPage() {
-  const { tenant, setAuth } = useAuthStore()
+  const { tenant, setAuth, plan } = useAuthStore()
   const queryClient = useQueryClient()
 
   const [claudeKey, setClaudeKey] = useState('')
@@ -98,90 +99,125 @@ export default function SettingsPage() {
           </div>
           <div>
             <h2 className="text-lg font-semibold text-dark-900">API Keys</h2>
-            <p className="text-sm text-dark-500">Configure your AI service credentials</p>
+            <p className="text-sm text-dark-500">AI service credentials</p>
           </div>
         </div>
 
-        <div className="space-y-6">
-          {/* Claude Key */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-medium text-dark-300">Anthropic Claude API Key</label>
-              {currentTenant?.has_claude_key && (
-                <span className="flex items-center gap-1 text-xs text-emerald-400">
-                  <CheckCircle className="w-3 h-3" />
-                  Configured
-                </span>
-              )}
+        {!canUseByok(plan) ? (
+          /* Free / Individual — platform provides keys, nothing to configure */
+          <div className="flex items-start gap-4 p-4 rounded-xl bg-primary-50 border border-primary-100">
+            <Sparkles className="w-5 h-5 text-primary-500 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-semibold text-primary-700 mb-1">Powered by Intervue — no setup needed</p>
+              <p className="text-sm text-dark-500 leading-relaxed">
+                Your plan includes managed AI. We handle the infrastructure so you can focus on hiring.
+                Interviews run out of the box with no API keys required.
+              </p>
+              <p className="text-xs text-dark-400 mt-2">
+                Need higher volume or custom keys?{' '}
+                <a href="/billing" className="text-primary-500 hover:underline">Upgrade to Startup</a>
+              </p>
             </div>
-            <div className="relative">
-              <input
-                type={showClaude ? 'text' : 'password'}
-                value={claudeKey}
-                onChange={(e) => setClaudeKey(e.target.value)}
-                className="input-field pr-12"
-                placeholder={currentTenant?.has_claude_key ? '••••••••••••••••' : 'Enter your Claude API key'}
-              />
-              <button
-                type="button"
-                onClick={() => setShowClaude(!showClaude)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-dark-500 hover:text-dark-300"
-              >
-                {showClaude ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-              </button>
-            </div>
-            <p className="text-xs text-dark-500 mt-1">
-              Get your key from{' '}
-              <a href="https://console.anthropic.com/" target="_blank" rel="noopener noreferrer" className="text-primary-400 hover:underline">
-                console.anthropic.com
-              </a>
-            </p>
           </div>
+        ) : (
+          <div className="space-y-6">
+            {/* BYOK savings nudge for startup plan without own keys */}
+            {!currentTenant?.has_claude_key && (
+              <div className="flex items-start gap-3 p-4 rounded-xl bg-emerald-50 border border-emerald-100">
+                <Zap className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold text-emerald-700 mb-0.5">Save ₹4,000/month with BYOK</p>
+                  <p className="text-xs text-dark-500">
+                    Add your own API keys and{' '}
+                    <a href="mailto:info@singularraritylabs.com?subject=BYOK%20Plan%20Switch" className="text-emerald-600 hover:underline font-medium">
+                      contact us to switch
+                    </a>{' '}
+                    to the BYOK plan at ₹3,999/month — same features, half the cost.
+                  </p>
+                </div>
+              </div>
+            )}
 
-          {/* Sarvam Key */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-medium text-dark-300">Sarvam AI API Key</label>
-              {currentTenant?.has_sarvam_key && (
-                <span className="flex items-center gap-1 text-xs text-emerald-400">
-                  <CheckCircle className="w-3 h-3" />
-                  Configured
-                </span>
-              )}
+            {/* Claude Key */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium text-dark-300">Anthropic Claude API Key</label>
+                {currentTenant?.has_claude_key && (
+                  <span className="flex items-center gap-1 text-xs text-emerald-400">
+                    <CheckCircle className="w-3 h-3" />
+                    Configured
+                  </span>
+                )}
+              </div>
+              <div className="relative">
+                <input
+                  type={showClaude ? 'text' : 'password'}
+                  value={claudeKey}
+                  onChange={(e) => setClaudeKey(e.target.value)}
+                  className="input-field pr-12"
+                  placeholder={currentTenant?.has_claude_key ? '••••••••••••••••' : 'Enter your Claude API key'}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowClaude(!showClaude)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-dark-500 hover:text-dark-300"
+                >
+                  {showClaude ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+              <p className="text-xs text-dark-500 mt-1">
+                Get your key from{' '}
+                <a href="https://console.anthropic.com/" target="_blank" rel="noopener noreferrer" className="text-primary-400 hover:underline">
+                  console.anthropic.com
+                </a>
+              </p>
             </div>
-            <div className="relative">
-              <input
-                type={showSarvam ? 'text' : 'password'}
-                value={sarvamKey}
-                onChange={(e) => setSarvamKey(e.target.value)}
-                className="input-field pr-12"
-                placeholder={currentTenant?.has_sarvam_key ? '••••••••••••••••' : 'Enter your Sarvam API key'}
-              />
-              <button
-                type="button"
-                onClick={() => setShowSarvam(!showSarvam)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-dark-500 hover:text-dark-300"
-              >
-                {showSarvam ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-              </button>
+
+            {/* Sarvam Key */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium text-dark-300">Sarvam AI API Key</label>
+                {currentTenant?.has_sarvam_key && (
+                  <span className="flex items-center gap-1 text-xs text-emerald-400">
+                    <CheckCircle className="w-3 h-3" />
+                    Configured
+                  </span>
+                )}
+              </div>
+              <div className="relative">
+                <input
+                  type={showSarvam ? 'text' : 'password'}
+                  value={sarvamKey}
+                  onChange={(e) => setSarvamKey(e.target.value)}
+                  className="input-field pr-12"
+                  placeholder={currentTenant?.has_sarvam_key ? '••••••••••••••••' : 'Enter your Sarvam API key'}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowSarvam(!showSarvam)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-dark-500 hover:text-dark-300"
+                >
+                  {showSarvam ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+              <p className="text-xs text-dark-500 mt-1">
+                Get your key from{' '}
+                <a href="https://dashboard.sarvam.ai/" target="_blank" rel="noopener noreferrer" className="text-primary-400 hover:underline">
+                  dashboard.sarvam.ai
+                </a>
+              </p>
             </div>
-            <p className="text-xs text-dark-500 mt-1">
-              Get your key from{' '}
-              <a href="https://dashboard.sarvam.ai/" target="_blank" rel="noopener noreferrer" className="text-primary-400 hover:underline">
-                dashboard.sarvam.ai
-              </a>
-            </p>
+
+            <button
+              onClick={handleSaveKeys}
+              disabled={updateKeysMutation.isPending}
+              className="btn-primary flex items-center gap-2"
+            >
+              {updateKeysMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              Save API Keys
+            </button>
           </div>
-
-          <button
-            onClick={handleSaveKeys}
-            disabled={updateKeysMutation.isPending}
-            className="btn-primary flex items-center gap-2"
-          >
-            {updateKeysMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            Save API Keys
-          </button>
-        </div>
+        )}
       </div>
 
       {/* Security Note */}

@@ -113,6 +113,16 @@ adminApi.interceptors.request.use((config) => {
 
 export { adminApi }
 
+export const jdApi = {
+  parse: (jd_text: string) => api.post('/interviews/parse-jd', { jd_text }),
+}
+
+export const questionsApi = {
+  list: (params?: { category?: string; difficulty?: string; source_type?: string; q?: string; limit?: number }) =>
+    api.get('/questions', { params }),
+  categories: () => api.get('/questions/categories'),
+}
+
 export const godAdminApi = {
   login: (data: { email: string; password: string }) => adminApi.post('/admin/auth/login', data),
   me: () => adminApi.get('/admin/auth/me'),
