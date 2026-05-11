@@ -27,8 +27,10 @@ $Service     = terraform output -raw ecs_service_name
 Pop-Location
 
 Write-Host "==> Logging into ECR..."
+# Login needs the registry root only, not the full repo path
+$EcrRegistry = $EcrUrl.Split('/')[0]
 $LoginPw = aws ecr get-login-password --region $AwsRegion
-$LoginPw | docker login --username AWS --password-stdin $EcrUrl
+$LoginPw | docker login --username AWS --password-stdin $EcrRegistry
 
 Write-Host "==> Building backend Docker image (tag: $Tag)..."
 docker build -t "${EcrUrl}:${Tag}" -t "${EcrUrl}:latest" -f "$RepoRoot\backend\Dockerfile" "$RepoRoot\backend"
@@ -54,8 +56,9 @@ aws ecs update-service `
 
 Write-Host "==> Building React frontend..."
 Push-Location "$RepoRoot\frontend"
-npm ci
-npm run build
+npm install
+npx tsc --noEmit
+npx vite build
 Pop-Location
 
 Write-Host "==> Syncing frontend to S3..."
