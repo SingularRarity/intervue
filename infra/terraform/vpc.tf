@@ -80,7 +80,7 @@ resource "aws_route_table_association" "private" {
 # ALB — accepts HTTP from anywhere (CloudFront terminates TLS)
 resource "aws_security_group" "alb" {
   name        = "${local.name_prefix}-alb-sg"
-  description = "ALB — public HTTP inbound"
+  description = "ALB - public HTTP inbound"
   vpc_id      = aws_vpc.main.id
 
   ingress {
@@ -110,7 +110,7 @@ resource "aws_security_group" "alb" {
 # ECS backend — accepts traffic from ALB only, full egress for Anthropic/Sarvam API calls
 resource "aws_security_group" "ecs" {
   name        = "${local.name_prefix}-ecs-sg"
-  description = "ECS tasks — inbound from ALB, outbound to internet + RDS + Redis"
+  description = "ECS tasks - inbound from ALB, outbound to internet + RDS + Redis"
   vpc_id      = aws_vpc.main.id
 
   ingress {
@@ -133,7 +133,7 @@ resource "aws_security_group" "ecs" {
 # RDS — accepts from ECS only
 resource "aws_security_group" "rds" {
   name        = "${local.name_prefix}-rds-sg"
-  description = "RDS PostgreSQL — accept from ECS"
+  description = "RDS PostgreSQL - accept from ECS"
   vpc_id      = aws_vpc.main.id
 
   ingress {
@@ -149,7 +149,7 @@ resource "aws_security_group" "rds" {
 # Redis — accepts from ECS only
 resource "aws_security_group" "redis" {
   name        = "${local.name_prefix}-redis-sg"
-  description = "ElastiCache Redis — accept from ECS"
+  description = "ElastiCache Redis - accept from ECS"
   vpc_id      = aws_vpc.main.id
 
   ingress {
