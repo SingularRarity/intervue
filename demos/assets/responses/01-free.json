@@ -1,0 +1,25 @@
+{
+  "demo": "Free User — Junior Frontend Screening",
+  "candidate": "Priya Sharma",
+  "voice": "en-IN-NeerjaNeural",
+  "responses": [
+    {
+      "id": 1,
+      "question_hint": "introduce yourself / experience",
+      "text": "Hi, thank you for the opportunity. I'm Priya Sharma, a recent Computer Science graduate from RV College of Engineering in Bengaluru. During my final year I built four personal projects using React — a task manager, a weather dashboard, and a portfolio site. I also did a three-month internship at Pixel Labs where I converted Figma designs into responsive HTML and CSS components. I'm really excited to grow as a developer, and I learn very quickly when I get hands-on with real problems.",
+      "duration_hint_ms": 14000
+    },
+    {
+      "id": 2,
+      "question_hint": "debugging / CSS issue",
+      "text": "When I face a CSS issue in production, my first step is always to open Chrome DevTools and inspect the element. I check the computed styles to see which rules are actually being applied and whether something is being overridden unexpectedly. In my internship I found a lot of specificity conflicts between Bootstrap's defaults and our custom styles. I also check for box model issues like unexpected margin collapsing. If it's a layout bug I'll quickly try flexbox or grid alternatives in the Styles panel before touching the code. I always test across Chrome, Firefox, and Safari before pushing.",
+      "duration_hint_ms": 16000
+    },
+    {
+      "id": 3,
+      "question_hint": "where do you see yourself",
+      "text": "In three years, I see myself as a confident React developer who can independently own frontend features end-to-end — from design system components all the way to API integration and performance optimization. I want to get into TypeScript deeply and start contributing to architectural decisions. Eventually I'd love to mentor junior developers the way I've been mentored. I'm also very curious about accessibility and want to make inclusive web experiences a strength of mine.",
+      "duration_hint_ms": 13000
+    }
+  ]
+}

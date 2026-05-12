@@ -1,0 +1,60 @@
+SANJAY KRISHNAN
+Principal Software Architect | Distributed Systems | Platform Engineering
+sanjay.krishnan@protonmail.com | +91 98400 12345 | Bengaluru, Karnataka
+linkedin.com/in/sanjaykrishnan-arch | github.com/sanjay-systems
+
+SUMMARY
+Principal Architect with 14 years of experience designing distributed systems at planetary scale. Built and scaled platforms processing billions of events daily across multi-cloud environments. Deep expertise in Kafka, Kubernetes, Postgres at scale, and zero-trust security architectures. Known for making pragmatic decisions under uncertainty and building engineering cultures that ship reliably.
+
+EXPERIENCE
+
+Principal Architect — Infra Platform, Razorpay, Bengaluru
+March 2020 – Present (4 years)
+
+- Designed and led implementation of Razorpay's unified event streaming platform: Apache Kafka (MSK) + Apache Flink, processing 80B events/day across 8 AWS regions
+- Architected the multi-tenant data isolation framework used by all 200+ internal services — row-level security, Postgres logical replication, per-tenant connection pools (PgBouncer)
+- Led Kubernetes platform v2: custom operators for service provisioning, Flux-based GitOps, multi-cluster federation across 3 AWS accounts; reduced deployment lead time 65%
+- Drove monolith decomposition: defined domain boundaries, event contracts, saga patterns; 40+ services extracted over 2 years with zero downtime migrations
+- Established SRE culture: defined SLOs for 120 services, error budget policies, chaos engineering program (Chaos Monkey for Kubernetes)
+- Built and staffed a 12-person Platform Engineering team; promoted 4 engineers to Staff level
+- Tech: Kafka, Flink, Kubernetes, Postgres, Cassandra, Istio, Prometheus, OpenTelemetry, Terraform, Go, Python
+
+Staff Engineer — Infrastructure, PhonePe, Pune
+June 2016 – Feb 2020 (3.7 years)
+
+- Designed PhonePe's transaction event sourcing system — append-only event store backed by Cassandra, replay capability for 3 years of history
+- Built distributed rate limiter using Redis Lua scripts + consistent hashing; handles 500K req/sec with P99 < 2ms
+- Led migration from on-premise to AWS (EC2 → EKS): zero-downtime, 180 services, 14-month program
+- Architected mTLS service mesh rollout using Envoy (pre-Istio); reduced lateral movement attack surface
+- Designed Postgres read replica strategy: 12 read replicas with load-balanced routing; eliminated reporting query contention
+
+Senior Software Engineer, Flipkart, Bengaluru
+Jan 2013 – May 2016 (3.5 years)
+
+- Built the inventory reservation service (Go): handles flash sale peaks of 2M concurrent users
+- Designed and implemented a distributed lock service using Zookeeper for catalog updates
+- Led the team that moved catalog search from MySQL full-text to Elasticsearch; 10x query speed improvement
+
+TECHNICAL EXPERTISE
+
+Distributed Systems: Kafka, Flink, Kafka Streams, event sourcing, CQRS, saga pattern, two-phase commit, leader election (Raft), gossip protocols
+Kubernetes: custom operators (controller-runtime), admission webhooks, Flux/ArgoCD GitOps, cluster federation, Karpenter, KEDA
+Databases: Postgres (advanced — logical replication, partitioning, vacuum tuning, RLS), Cassandra, ScyllaDB, Redis (Cluster mode), DynamoDB
+Observability: Prometheus, Thanos, Grafana, OpenTelemetry, Jaeger, PagerDuty SLO management
+Security: Istio/Envoy service mesh, zero-trust, OPA/Gatekeeper, Vault, SOC2 Type II, DPDP compliance
+Cloud: AWS (EKS, MSK, Aurora, ElastiCache, S3, IAM), multi-cloud patterns
+Languages: Go (primary), Python, Java (legacy), Rust (learning)
+
+EDUCATION
+B.Tech Computer Science — IIT Madras | 2009–2013 | CPI 8.7
+
+PUBLICATIONS & TALKS
+- "Cell-Based Architecture at Razorpay" — QCon London 2024
+- "Surviving Black Friday: Lessons from Flipkart's Inventory System" — KubeCon EU 2023
+- Blog: sanjaysystems.io — 12,000 monthly readers
+- "Event Sourcing at Scale" — IEEE Software, 2022
+
+CERTIFICATIONS
+- Certified Kubernetes Administrator (CKA)
+- AWS Solutions Architect Professional
+- Google Professional Cloud Architect

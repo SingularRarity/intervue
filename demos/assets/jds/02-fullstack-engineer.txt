@@ -1,0 +1,42 @@
+Full-Stack Software Engineer
+Zeno Fintech | Hyderabad, India (Remote-friendly)
+
+About Zeno:
+Zeno is building the next generation of embedded finance infrastructure for Indian MSMEs. We process ₹200Cr+ in transactions monthly and are backed by top-tier VCs. Our stack handles real-money flows — reliability, correctness, and speed matter here.
+
+The Role:
+We're hiring a Full-Stack Engineer to own features end-to-end — from database schema to pixel-perfect UI. You'll work on our merchant dashboard, transaction APIs, and internal tooling.
+
+What You'll Do:
+- Design and implement REST/GraphQL APIs using Node.js and TypeScript
+- Build responsive, performant React frontends using our design system
+- Own database schemas and write efficient PostgreSQL queries
+- Implement real-time features using WebSockets
+- Set up monitoring, alerting, and observability for your services
+- Lead small feature squads and mentor junior engineers
+- Participate in on-call rotation (compensated separately)
+
+What We're Looking For:
+- 3-5 years of full-stack development experience
+- Strong TypeScript/JavaScript across the full stack
+- React expertise — hooks, context, query management (React Query / SWR)
+- Backend: Node.js, REST API design, Express or Fastify
+- PostgreSQL — query optimization, indexing, migrations
+- Real-time systems: WebSocket, SSE, or similar
+- Docker and basic Kubernetes/ECS experience
+- Strong system design fundamentals
+
+Bonus Points:
+- Experience with financial systems or payments
+- Rust or Go exposure
+- Redis, message queues (SQS, Kafka)
+- Contributions to open source
+
+What We Offer:
+- ₹18–28 LPA + ESOPs
+- Fully remote with quarterly offsites in Hyderabad
+- Health insurance for family
+- Learning budget ₹50K/year
+- MacBook Pro M3 on day 1
+
+Process: Resume screen → Technical assessment (2h) → System design → Culture fit → Offer

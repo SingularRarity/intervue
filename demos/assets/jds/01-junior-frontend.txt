@@ -1,0 +1,30 @@
+Junior Frontend Developer — Screening Role
+TechFlow Solutions | Bengaluru, India
+
+About the Role:
+We're looking for a motivated Junior Frontend Developer to join our growing product team. You'll work on building responsive web interfaces and collaborate closely with designers and backend engineers.
+
+Responsibilities:
+- Build and maintain responsive web interfaces using HTML, CSS, and JavaScript
+- Implement UI components using React.js
+- Collaborate with designers to translate Figma designs into working code
+- Debug and fix cross-browser compatibility issues
+- Write clean, readable code with basic documentation
+- Participate in code reviews and team stand-ups
+
+Requirements:
+- 0-2 years of experience in frontend development
+- Solid understanding of HTML5, CSS3, and JavaScript (ES6+)
+- Basic experience with React.js
+- Familiarity with Git version control
+- Understanding of responsive design principles
+- Good communication skills and eagerness to learn
+
+Nice to Have:
+- Exposure to TypeScript
+- Experience with REST APIs
+- Basic understanding of web accessibility
+
+Compensation: ₹4–6 LPA
+Location: Bengaluru (Hybrid, 3 days/week)
+Interview Process: 1 screening round + 1 technical round

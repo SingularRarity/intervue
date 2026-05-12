@@ -1,0 +1,31 @@
+{
+  "name": "intervue-demos",
+  "version": "1.0.0",
+  "description": "Demo recording scripts for Intervue — Free, Individual, and Startup plans",
+  "type": "module",
+  "scripts": {
+    "generate:audio": "node scripts/generate-audio.mjs",
+    "setup:accounts": "node scripts/setup-accounts.mjs",
+    "demo:free": "npx playwright test tests/01-free-user.spec.ts --headed",
+    "demo:individual": "npx playwright test tests/02-individual.spec.ts --headed",
+    "demo:startup": "npx playwright test tests/03-startup.spec.ts --headed",
+    "demo:all": "npx playwright test --headed",
+    "postprocess:free": "node scripts/postprocess.mjs free",
+    "postprocess:individual": "node scripts/postprocess.mjs individual",
+    "postprocess:startup": "node scripts/postprocess.mjs startup",
+    "postprocess:all": "node scripts/postprocess.mjs all",
+    "record:all": "npm run generate:audio && npm run setup:accounts && npm run demo:all && npm run postprocess:all"
+  },
+  "dependencies": {
+    "msedge-tts": "^1.3.5",
+    "node-fetch": "^3.3.2",
+    "fluent-ffmpeg": "^2.1.3",
+    "@ffmpeg-installer/ffmpeg": "^1.1.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.44.0",
+    "@types/node": "^20.0.0",
+    "@types/fluent-ffmpeg": "^2.1.25",
+    "typescript": "^5.4.0"
+  }
+}

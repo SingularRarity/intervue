@@ -1,0 +1,49 @@
+PRIYA SHARMA
+Frontend Developer Fresher
+priya.sharma@gmail.com | +91 98765 43210 | Bengaluru, Karnataka
+linkedin.com/in/priyasharma-dev | github.com/priya-codes
+
+SUMMARY
+Recent Computer Science graduate with strong fundamentals in HTML, CSS, and JavaScript. Built 4 personal projects using React during my final year. Looking for my first professional opportunity where I can grow and contribute to a real product.
+
+EDUCATION
+B.E. Computer Science and Engineering
+RV College of Engineering, Bengaluru | 2020–2024
+CGPA: 8.4 / 10
+
+SKILLS
+Languages: HTML5, CSS3, JavaScript (ES6+), Python (basic)
+Frameworks: React.js, Bootstrap, Tailwind CSS
+Tools: Git, GitHub, VS Code, Chrome DevTools, Figma (basic)
+Concepts: Responsive design, REST APIs (consumption), basic DOM manipulation
+
+PROJECTS
+
+Portfolio Website (React + Tailwind CSS)
+- Built a personal portfolio with responsive design, dark mode toggle, and contact form
+- Deployed on Vercel, 95+ Lighthouse score
+- github.com/priya-codes/portfolio
+
+Task Manager App (React + LocalStorage)
+- Todo application with drag-and-drop reordering, priority tags, and deadline tracking
+- Implemented with React hooks (useState, useEffect, useCallback)
+- Used Context API for global state
+
+Weather Dashboard (Vanilla JS + OpenWeather API)
+- Fetched real-time weather data from REST API
+- Displayed 5-day forecast with dynamic background based on weather conditions
+- Handled loading and error states
+
+INTERNSHIP
+Frontend Intern — Pixel Labs, Bengaluru (June–August 2023, 3 months)
+- Converted 12 Figma designs to responsive HTML/CSS components
+- Fixed cross-browser CSS issues in Internet Explorer and Safari
+- Wrote unit tests for 3 utility functions using Jest
+
+CERTIFICATIONS
+- Responsive Web Design — freeCodeCamp (2023)
+- JavaScript Algorithms and Data Structures — freeCodeCamp (2023)
+- React Basics — Meta on Coursera (2024)
+
+LANGUAGES
+English (Professional), Kannada (Native), Hindi (Conversational)

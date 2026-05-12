@@ -1,0 +1,40 @@
+{
+  "voice": "en-US-AndrewNeural",
+  "rate": "+0%",
+  "demos": {
+    "free": {
+      "intro": "Meet Priya Sharma — a freshly graduated frontend developer applying for her first job. The hiring manager at TechFlow Solutions uses Intervue on the free plan to screen her today.",
+      "template_create": "In seconds, the template is ready. Interview type, difficulty, and duration are smart-defaulted for the free plan.",
+      "jd_upload": "Upload the job description — Intervue's AI reads it and auto-fills the template details.",
+      "candidate_add": "Add the candidate. Upload her resume and watch the form fill itself.",
+      "interview_start": "One click. The AI interviewer takes over.",
+      "interview_running": "Priya speaks naturally. The AI listens, understands, and responds in real time.",
+      "results": "In minutes — a complete evaluation. Skills matched, red flags surfaced, hiring recommendation ready.",
+      "cta": "Intervue. AI-powered interviews. Start free at intervue dot singularraritylabs dot com."
+    },
+    "individual": {
+      "intro": "Arjun Mehta — four years of full-stack experience. He's interviewing at Zeno Fintech for a senior role. Their recruiter runs a structured technical interview on Intervue's Individual plan.",
+      "template_create": "Full control: technical interview type, 30-minute duration, Hard difficulty. The AI will push this candidate.",
+      "jd_upload": "Drop the job description. Intervue extracts topics, difficulty, and recommended duration automatically.",
+      "candidate_add": "Arjun's resume is uploaded. Every field auto-populated from his CV.",
+      "interview_start": "The AI conducts a structured technical interview. No prep needed from the recruiter.",
+      "interview_running": "Four thoughtful, technical questions. The AI probes deeper based on each answer.",
+      "results": "A detailed scorecard: technical depth, communication clarity, culture signals. Ready to share with the team.",
+      "cta": "Intervue. Smarter technical hiring. Try the Individual plan today."
+    },
+    "startup": {
+      "intro": "Sanjay Krishnan. Principal Architect. 14 years. IIT Madras. The kind of candidate you get one shot at impressing. NovaStar Systems uses Intervue's Startup plan to conduct a rigorous architecture interview — without tying up two of their Staff engineers for two hours.",
+      "template_create": "Expert difficulty. 60 minutes. Five deep architecture questions seeded from the job description.",
+      "jd_upload": "The JD is dense — distributed systems, Kubernetes, Kafka at scale. Intervue parses every requirement.",
+      "candidate_add": "Sanjay's resume is loaded. 14 years of architecture decisions in a two-page document. Intervue reads all of it.",
+      "interview_start": "The AI architect begins. No hand-holding. No softball questions.",
+      "q1": "Distributed systems design. The AI doesn't just ask — it probes the trade-offs.",
+      "q2": "Monolith decomposition. Real-world experience, not textbook answers.",
+      "q3": "CAP theorem — theory applied under production pressure.",
+      "q4": "Leadership under fire. The AI surfaces the human behind the architecture.",
+      "q5": "Multi-tenant security. The question that separates architects from engineers.",
+      "results": "A comprehensive report: system design depth, communication of trade-offs, decision-making under ambiguity. Shareable in one link. Ready in minutes, not days.",
+      "cta": "Intervue. Enterprise-grade interviews, startup speed. See the Startup plan at intervue dot singularraritylabs dot com."
+    }
+  }
+}

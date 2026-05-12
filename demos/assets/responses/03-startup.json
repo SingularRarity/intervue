@@ -1,0 +1,38 @@
+{
+  "demo": "Startup Plan — Principal Architect Interview",
+  "candidate": "Sanjay Krishnan",
+  "voice": "en-US-AndrewNeural",
+  "narration_voice": "en-US-AndrewNeural",
+  "responses": [
+    {
+      "id": 1,
+      "question_hint": "distributed event-driven system / 10 million events",
+      "text": "I'd start by understanding the event contract before touching infrastructure. What does an event look like? What are the consumer SLOs — is it okay for a consumer to be 30 seconds behind, or do we need sub-second delivery? Assuming sub-100ms end-to-end, I'd go with Apache Kafka as the backbone. At 10 million events per day that's roughly 115 events per second on average, but you need to design for peak — probably 5 to 10 times that. I'd shard the topic with 12 partitions by default, keyed on a natural entity ID so ordering is preserved per entity. Producers write asynchronously with acks equals all for durability. Consumers use a consumer group model so you can scale horizontally. For the fanout problem — if multiple services need the same events — I'd use a stream processing layer, Kafka Streams or Flink, to route and transform rather than having consumers read the same raw topic. I'd also implement a dead letter queue pattern and a replay API from day one, because operational life without replay is miserable.",
+      "duration_hint_ms": 28000
+    },
+    {
+      "id": 2,
+      "question_hint": "monolith decomposition / microservices migration",
+      "text": "The biggest mistake people make is starting with the infrastructure — spinning up Kubernetes, setting up service meshes — before they've done the domain analysis. The first thing I do is an event storming session with domain experts to find the natural bounded contexts. Where do transactions cross team ownership boundaries? Where do deployments cause the most friction? Those are your first candidates for extraction. The pattern I've found most reliable is the Strangler Fig approach — you don't rewrite, you intercept. Put a thin routing layer in front of the monolith, and gradually move traffic to new services as you extract them. The key constraint I enforce: never share a database between the new service and the monolith. Use events or an anti-corruption layer API. This is painful short-term — you end up with data duplication — but it gives you true independence. At Razorpay we extracted 40 services over 2 years with zero production outages, because we were disciplined about this rule.",
+      "duration_hint_ms": 26000
+    },
+    {
+      "id": 3,
+      "question_hint": "CAP theorem / consistency vs availability",
+      "text": "CAP is a framework, not a prescription. The real question is: what is the cost of being wrong in either direction? For a financial transaction, inconsistency can mean double-charging a customer — that's an irreversible, trust-destroying error, so I'll accept availability hits and sacrifice partition tolerance in extreme cases. For a product catalog or a user preferences system, being stale for 5 seconds is completely acceptable, so I'd choose AP and use eventual consistency with CRDT-style merge semantics. In practice, I've found that most teams don't actually need global strong consistency — they need linearizability within a single entity's history, not across entities. That's a much easier problem. You can achieve it with per-entity ordering in Kafka, or with optimistic concurrency control in Postgres using version columns. The most expensive decisions come when you confuse local consistency requirements with global ones.",
+      "duration_hint_ms": 24000
+    },
+    {
+      "id": 4,
+      "question_hint": "controversial architectural decision / pushback",
+      "text": "At PhonePe, I pushed to move our entire service-to-service communication from REST to event-driven, even for synchronous-looking operations. The engineering team was deeply skeptical — they felt it was over-engineering and the operational complexity wasn't worth it. I had to resist the instinct to just override through authority. Instead I proposed a controlled experiment: pick one service pair, implement the event-driven version, measure operational overhead for one quarter. I also built the argument financially — showed the cost of point-to-point coupling compounding over 3 years as the service count grew. What changed minds wasn't the architecture slides, it was when I demonstrated the first real operational win: we replayed 6 hours of events after a downstream outage and recovered state without a single manual SQL script. After that, the conversation changed completely. The lesson I took: make the first win concrete and undeniable, don't try to win the whole war on a whiteboard.",
+      "duration_hint_ms": 25000
+    },
+    {
+      "id": 5,
+      "question_hint": "multi-tenant SaaS security / data isolation",
+      "text": "Multi-tenancy security is a spectrum, not a binary. At one end you have full silo — separate database per tenant. Maximum isolation, terrible unit economics. At the other end, shared everything — simplest operationally, scariest from a breach perspective. I've implemented both extremes and everything in between. My current preferred pattern is a shared Postgres cluster with row-level security, where every row has a tenant_id and the application connection switches to a row-security context on every request. The advantage is you can graduate a tenant to a dedicated cluster when they hit tier thresholds without changing any application code. For the platform layer — Kubernetes — I enforce namespace-level network policies and OPA Gatekeeper policies that reject any pod spec without the right tenant labels. All secrets go through Vault with per-tenant PKI. And critically, I treat the audit log as a first-class deliverable, not an afterthought — every data access gets an immutable record. If you can't answer 'who accessed what tenant's data at 2am on Tuesday', you don't have multi-tenant security, you have multi-tenant vibes.",
+      "duration_hint_ms": 28000
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+ARJUN MEHTA
+Full-Stack Software Engineer
+arjun.mehta@gmail.com | +91 90123 45678 | Hyderabad, Telangana
+linkedin.com/in/arjunmehta-dev | github.com/arjun-builds
+
+SUMMARY
+Full-stack engineer with 4 years of experience building high-throughput web applications. Specialised in React/TypeScript frontends and Node.js backends with PostgreSQL. Currently at a B2B SaaS company, leading the migration of a legacy jQuery codebase to React 18. Passionate about clean architecture and developer experience.
+
+EXPERIENCE
+
+Senior Software Engineer — Claraview SaaS, Hyderabad
+Jan 2022 – Present (2.5 years)
+
+- Led frontend rewrite from jQuery to React 18 + TypeScript (0 to 80% completion); reduced bundle size 62%, improved LCP by 40%
+- Designed and implemented a multi-tenant data isolation layer using row-level security in Postgres; serves 300+ enterprise tenants
+- Built a real-time analytics dashboard using WebSocket + React Query; handles 50K concurrent connections
+- Introduced React Query across the codebase — eliminated 4,000 lines of custom cache code
+- Mentored 3 junior engineers; ran weekly architecture review sessions
+- Stack: React 18, TypeScript, Node.js, Express, PostgreSQL, Redis, Docker, AWS ECS
+
+Software Engineer — Nimbus Tech, Pune
+July 2020 – Dec 2021 (1.5 years)
+
+- Built REST APIs for a logistics tracking platform (Node.js + Express + MongoDB)
+- Implemented authentication system: JWT + refresh tokens + OAuth2 (Google, GitHub)
+- Created internal admin dashboard in React with role-based access control
+- Reduced API response time 35% through query optimization and Redis caching
+- Stack: React, Node.js, MongoDB, Redis, GraphQL, Heroku
+
+TECHNICAL SKILLS
+
+Frontend: React 18, TypeScript, Next.js (basic), Tailwind CSS, Radix UI, Zustand, React Query, Framer Motion
+Backend: Node.js, TypeScript, Express, Fastify (learning), REST, GraphQL, WebSocket
+Database: PostgreSQL (advanced — indexing, query plans, RLS), Redis, MongoDB
+DevOps: Docker, GitHub Actions CI/CD, AWS (ECS, S3, RDS, CloudFront), basic Kubernetes
+Testing: Vitest, React Testing Library, Playwright, Jest, supertest
+
+EDUCATION
+B.Tech Computer Science — BITS Pilani, Hyderabad Campus | 2016–2020 | 7.8 CGPA
+
+OPEN SOURCE
+- react-query-devtools: contributed a filter panel feature (merged, 127 stars)
+- Maintains table-craft (React table library): 340 GitHub stars
+
+ACHIEVEMENTS
+- Won internal hackathon 2023 — "Best Performance Optimization" for 40% LCP improvement
+- Speaker at ReactConf India 2024 — "Practical State Management at Scale"

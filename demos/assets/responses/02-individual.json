@@ -1,0 +1,32 @@
+{
+  "demo": "Individual Plan — Full-Stack Engineer Technical Interview",
+  "candidate": "Arjun Mehta",
+  "voice": "en-IN-PrabhatNeural",
+  "narration_voice": "en-US-AndrewNeural",
+  "responses": [
+    {
+      "id": 1,
+      "question_hint": "React and Node.js experience",
+      "text": "Sure. I've been working full-stack for about four years now. On the frontend, I've done a full migration of a large enterprise SaaS product from jQuery to React 18 with TypeScript — that involved building a component library, introducing React Query for server state, and reducing the bundle size by 62 percent. On the backend, I work in Node.js with TypeScript, building REST APIs and WebSocket services. At Claraview I built a real-time analytics dashboard that handles about 50 thousand concurrent WebSocket connections. I'm comfortable owning a feature from database schema design all the way to the React component.",
+      "duration_hint_ms": 18000
+    },
+    {
+      "id": 2,
+      "question_hint": "state management in complex applications",
+      "text": "My philosophy is to use the simplest tool that solves the problem. Server state — data that comes from an API — I always reach for React Query first. It handles caching, background refetching, optimistic updates, and loading states out of the box, and I've seen it eliminate thousands of lines of custom cache logic. For global UI state — things like theme, user preferences, modal open states — I use Zustand because it's lightweight and avoids the boilerplate of Redux. I only reach for something heavier like Jotai or Redux Toolkit if there's a very specific reason. The goal is to keep components as dumb as possible and push logic into the query layer.",
+      "duration_hint_ms": 17000
+    },
+    {
+      "id": 3,
+      "question_hint": "maintainable and testable code",
+      "text": "I think about this in three layers. First, structure — I organize code by feature rather than by type, so all the files related to a feature live together and the boundaries are obvious. Second, abstraction — I try to keep components focused on a single responsibility and extract logic into custom hooks that can be tested independently. And third, testing strategy — I write integration tests using React Testing Library that test user behavior rather than implementation details. For backend, I write unit tests for business logic and use supertest for API integration tests. The measure of good code for me is: if I came back six months later having forgotten everything, could I understand what this does and why in under five minutes?",
+      "duration_hint_ms": 18000
+    },
+    {
+      "id": 4,
+      "question_hint": "staying updated / frontend landscape",
+      "text": "I follow a few key sources — the React RFC GitHub, the TC39 proposals repo, and newsletters like Bytes and This Week in React. But honestly, the most valuable thing for me is building small experiments. When React Server Components became a topic, I built a toy Next.js app just to understand the model. When I heard about Signals, I ported a piece of our UI to a Signals-based approach to see the trade-offs firsthand. I also try to read source code of libraries I use heavily — I've learned a lot about React internals just from reading the React Query source. I gave a talk at ReactConf India last year on state management patterns, which forced me to synthesize everything I'd learned.",
+      "duration_hint_ms": 17000
+    }
+  ]
+}

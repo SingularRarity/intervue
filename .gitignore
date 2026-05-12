@@ -25,6 +25,13 @@ Thumbs.db
 *.env
 !backend/.env.example
 
+# Demos
+demos/.env
+demos/node_modules/
+demos/output/
+demos/report/
+demos/assets/audio/
+
 # Terraform
 infra/terraform/terraform.tfvars
 infra/terraform/.terraform/
