@@ -18,7 +18,6 @@ impl ClaudeService {
         }
     }
 
-    /// Generate interview questions based on job description and candidate profile
     pub async fn generate_interview_questions(
         &self,
         api_key: &str,
@@ -29,46 +28,36 @@ impl ClaudeService {
         difficulty: &str,
         language: &str,
         resume_text: Option<&str>,
-    ) -> anyhow::Result<Vec<InterviewQuestion>> {
+    ) -> anyhow::Result<Vec<crate::services::groq::InterviewQuestion>> {
         let system_prompt = format!(
-            r#"You are an expert technical interviewer for a {} position. 
-            Generate {} interview questions in {} language.
-            The candidate has {} years of experience with skills: {}.
-            Difficulty level: {}.
+            r#"You are an expert technical interviewer for a {} position.
+Generate {} interview questions in {} language.
+The candidate has {} years of experience with skills: {}.
+Difficulty level: {}.
 
-            For each question, provide:
-            1. The question text
-            2. Expected key points in the answer
-            3. A weight (0.0-1.0) indicating importance
-            4. The skill being assessed
+For each question, provide:
+1. The question text
+2. Expected key points in the answer
+3. A weight (0.0-1.0) indicating importance
+4. The skill being assessed
 
-            Return ONLY a JSON array with no markdown formatting."#,
-            job_title,
-            interview_type,
-            language,
-            experience_years,
-            skills.join(", "),
-            difficulty,
+Return ONLY a JSON array with no markdown formatting."#,
+            job_title, interview_type, language, experience_years,
+            skills.join(", "), difficulty,
         );
 
         let user_prompt = if let Some(resume) = resume_text {
-            format!("Based on this resume: {}
-
-Generate 8-12 targeted interview questions.", resume)
+            format!("Based on this resume: {}\n\nGenerate 8-12 targeted interview questions.", resume)
         } else {
             "Generate 8-12 targeted interview questions.".to_string()
         };
 
         let response = self.call_claude(api_key, &system_prompt, &user_prompt).await?;
-
-        // Parse the JSON response
-        let questions: Vec<InterviewQuestion> = serde_json::from_str(&response)
-            .map_err(|e| anyhow::anyhow!("Failed to parse questions: {}. Raw: {}", e, response))?;
-
-        Ok(questions)
+        let clean = crate::services::groq::strip_markdown(&response);
+        serde_json::from_str(&clean)
+            .map_err(|e| anyhow::anyhow!("Failed to parse questions: {}. Raw: {}", e, clean))
     }
 
-    /// Analyze candidate response and provide scoring
     pub async fn analyze_response(
         &self,
         api_key: &str,
@@ -76,95 +65,68 @@ Generate 8-12 targeted interview questions.", resume)
         expected_points: &[String],
         candidate_answer: &str,
         context: &str,
-    ) -> anyhow::Result<ResponseAnalysis> {
+    ) -> anyhow::Result<crate::services::groq::ResponseAnalysis> {
         let system_prompt = r#"You are an expert interview evaluator. Analyze the candidate's response objectively.
 
-        Provide a JSON response with:
-        - score: 0-100
-        - technical_accuracy: 0-100  
-        - communication_clarity: 0-100
-        - depth_of_knowledge: 0-100
-        - key_points_covered: array of strings
-        - missing_points: array of strings
-        - follow_up_suggestion: string (next question or null if sufficient)
-        - summary: brief evaluation summary"#;
+Provide a JSON response with:
+- score: 0-100
+- technical_accuracy: 0-100
+- communication_clarity: 0-100
+- depth_of_knowledge: 0-100
+- key_points_covered: array of strings
+- missing_points: array of strings
+- follow_up_suggestion: string or null
+- summary: brief evaluation summary"#;
 
         let user_prompt = format!(
-            r#"Context: {}
-
-            Question: {}
-            Expected points: {}
-
-            Candidate's answer: {}
-
-            Analyze this response."#,
-            context,
-            question,
-            expected_points.join("
-- "),
-            candidate_answer,
+            "Context: {}\n\nQuestion: {}\nExpected points:\n- {}\n\nCandidate's answer: {}\n\nAnalyze this response.",
+            context, question, expected_points.join("\n- "), candidate_answer,
         );
 
         let response = self.call_claude(api_key, system_prompt, &user_prompt).await?;
-
-        let analysis: ResponseAnalysis = serde_json::from_str(&response)
-            .map_err(|e| anyhow::anyhow!("Failed to parse analysis: {}. Raw: {}", e, response))?;
-
-        Ok(analysis)
+        let clean = crate::services::groq::strip_markdown(&response);
+        serde_json::from_str(&clean)
+            .map_err(|e| anyhow::anyhow!("Failed to parse analysis: {}. Raw: {}", e, clean))
     }
 
-    /// Generate final interview report
     pub async fn generate_final_report(
         &self,
         api_key: &str,
-        transcript: &[(String, String)], // (role, message)
+        transcript: &[(String, String)],
         template_title: &str,
         candidate_name: &str,
     ) -> anyhow::Result<crate::models::InterviewResult> {
         let system_prompt = r#"You are a senior hiring manager. Generate a comprehensive interview evaluation report.
 
-        Provide a JSON response with:
-        - overall_score: 0-100
-        - technical_score: 0-100
-        - communication_score: 0-100
-        - problem_solving_score: 0-100
-        - cultural_fit_score: 0-100
-        - strengths: array of strings
-        - weaknesses: array of strings
-        - recommendation: one of "Strong Hire", "Hire", "Maybe", "No Hire"
-        - detailed_feedback: string (2-3 paragraphs)
-        - skill_assessments: array of {skill, score, evidence, level}"#;
+Provide a JSON response with:
+- overall_score: 0-100
+- technical_score: 0-100
+- communication_score: 0-100
+- problem_solving_score: 0-100
+- cultural_fit_score: 0-100
+- strengths: array of strings
+- weaknesses: array of strings
+- recommendation: one of "Strong Hire", "Hire", "Maybe", "No Hire"
+- detailed_feedback: string
+- skill_assessments: array of {skill, score, evidence, level}"#;
 
         let transcript_text = transcript
             .iter()
             .map(|(role, msg)| format!("{}: {}", role, msg))
             .collect::<Vec<_>>()
-            .join("
-
-");
+            .join("\n\n");
 
         let user_prompt = format!(
-            r#"Interview Template: {}
-            Candidate: {}
-
-            Full Transcript:
-            {}
-
-            Generate a comprehensive evaluation report."#,
-            template_title,
-            candidate_name,
-            transcript_text,
+            "Interview Template: {}\nCandidate: {}\n\nFull Transcript:\n{}\n\nGenerate a comprehensive evaluation report.",
+            template_title, candidate_name, transcript_text,
         );
 
         let response = self.call_claude(api_key, system_prompt, &user_prompt).await?;
-
-        let result: crate::models::InterviewResult = serde_json::from_str(&response)
-            .map_err(|e| anyhow::anyhow!("Failed to parse report: {}. Raw: {}", e, response))?;
-
-        Ok(result)
+        let clean = crate::services::groq::strip_markdown(&response);
+        serde_json::from_str(&clean)
+            .map_err(|e| anyhow::anyhow!("Failed to parse report: {}. Raw: {}", e, clean))
     }
 
-    /// Generate contextual follow-up question
     pub async fn generate_follow_up(
         &self,
         api_key: &str,
@@ -173,94 +135,51 @@ Generate 8-12 targeted interview questions.", resume)
         candidate_level: &str,
     ) -> anyhow::Result<String> {
         let system_prompt = r#"You are a skilled interviewer. Based on the conversation so far, generate a natural follow-up question.
-        The question should probe deeper into the candidate's knowledge or explore a related topic.
-        Keep it conversational and professional. Return only the question text."#;
+Keep it conversational and professional. Return only the question text."#;
 
         let history_text = conversation_history
             .iter()
             .map(|(role, msg)| format!("{}: {}", role, msg))
             .collect::<Vec<_>>()
-            .join("
-");
+            .join("\n");
 
         let user_prompt = format!(
-            r#"Current topic: {}
-            Candidate level: {}
-
-            Conversation so far:
-            {}
-
-            Generate the next interview question."#,
-            current_topic,
-            candidate_level,
-            history_text,
+            "Current topic: {}\nCandidate level: {}\n\nConversation:\n{}\n\nGenerate the next interview question.",
+            current_topic, candidate_level, history_text,
         );
 
         self.call_claude(api_key, system_prompt, &user_prompt).await
     }
 
-    /// Parse a job description and extract structured template data
-    pub async fn parse_jd(
-        &self,
-        api_key: &str,
-        jd_text: &str,
-    ) -> anyhow::Result<JdParseResult> {
-        let system_prompt = r#"You are an expert HR analyst. Parse the given job description and extract structured information for building an interview template.
-
-Return ONLY a valid JSON object (no markdown, no code fences) with exactly these fields:
+    pub async fn parse_jd(&self, api_key: &str, jd_text: &str) -> anyhow::Result<crate::services::groq::JdParseResult> {
+        let system_prompt = r#"You are an expert HR analyst. Parse the job description and return ONLY valid JSON with these fields:
 {
-  "title": "job title / role name",
-  "summary": "2-3 sentence summary of the role and key responsibilities, suitable for an interview template description",
-  "topics": ["skill1", "skill2", "skill3"],
+  "title": "job title",
+  "summary": "2-3 sentence summary",
+  "topics": ["skill1", "skill2"],
   "difficulty": "Easy|Medium|Hard|Expert",
   "interview_type": "Technical|Behavioral|Mixed|CultureFit|Screening",
   "duration_minutes": 30,
   "language": "en"
-}
-
-Rules:
-- title: exact job title from the JD
-- summary: concise, interviewer-facing description; focus on what will be assessed
-- topics: 3-8 key skills/competencies most relevant to screen for (be specific, e.g. "React", "System Design", "SQL", not generic)
-- difficulty: infer from seniority (junior→Easy, mid→Medium, senior→Hard, staff/principal→Expert)
-- interview_type: Technical for engineering roles, Behavioral for people/ops roles, Mixed for most, CultureFit for culture-screen, Screening for early-stage
-- duration_minutes: 20 for screening, 30 for standard, 45 for senior, 60 for expert
-- language: always "en" unless JD is in another language"#;
+}"#;
 
         let response = self.call_claude(api_key, system_prompt, jd_text).await?;
-
-        // Strip any accidental markdown fences
-        let clean = response.trim()
-            .trim_start_matches("```json")
-            .trim_start_matches("```")
-            .trim_end_matches("```")
-            .trim();
-
-        serde_json::from_str::<JdParseResult>(clean)
+        let clean = crate::services::groq::strip_markdown(&response);
+        serde_json::from_str(&clean)
             .map_err(|e| anyhow::anyhow!("Failed to parse JD result: {}. Raw: {}", e, clean))
     }
 
-    async fn call_claude(
-        &self,
-        api_key: &str,
-        system: &str,
-        user_message: &str,
-    ) -> anyhow::Result<String> {
-        let url = format!("{}/v1/messages", self.base_url);
-
+    async fn call_claude(&self, api_key: &str, system: &str, user_message: &str) -> anyhow::Result<String> {
         let request = ClaudeRequest {
             model: "claude-3-5-sonnet-20241022".to_string(),
             max_tokens: 4096,
             system: Some(system.to_string()),
-            messages: vec![Message {
-                role: "user".to_string(),
-                content: user_message.to_string(),
-            }],
+            messages: vec![Message { role: "user".to_string(), content: user_message.to_string() }],
             temperature: 0.7,
         };
 
         let response = self.client
-            .post(&url)
+            .post(format!("{}/v1/messages", self.base_url))
             .header("x-api-key", api_key)
             .header("anthropic-version", "2023-06-01")
             .header("Content-Type", "application/json")
@@ -269,12 +188,11 @@ Rules:
             .await?;
 
         if !response.status().is_success() {
-            let error_text = response.text().await?;
-            return Err(anyhow::anyhow!("Claude API error: {}", error_text));
+            let err = response.text().await?;
+            return Err(anyhow::anyhow!("Claude API error: {}", err));
         }
 
         let result: ClaudeResponse = response.json().await?;
-
         Ok(result.content[0].text.clone())
     }
 }
@@ -302,38 +220,8 @@ struct ClaudeResponse {
 
 #[derive(Debug, Deserialize)]
 struct ContentBlock {
+    #[allow(dead_code)]
     #[serde(rename = "type")]
     content_type: String,
     text: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InterviewQuestion {
-    pub question: String,
-    pub expected_answer_points: Vec<String>,
-    pub weight: f32,
-    pub skill: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct JdParseResult {
-    pub title: String,
-    pub summary: String,
-    pub topics: Vec<String>,
-    pub difficulty: String,
-    pub interview_type: String,
-    pub duration_minutes: i32,
-    pub language: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResponseAnalysis {
-    pub score: f32,
-    pub technical_accuracy: f32,
-    pub communication_clarity: f32,
-    pub depth_of_knowledge: f32,
-    pub key_points_covered: Vec<String>,
-    pub missing_points: Vec<String>,
-    pub follow_up_suggestion: Option<String>,
-    pub summary: String,
 }

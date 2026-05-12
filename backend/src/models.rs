@@ -14,6 +14,7 @@ pub struct Tenant {
     pub password_hash: String,
     pub claude_api_key: Option<String>,
     pub sarvam_api_key: Option<String>,
+    pub groq_api_key: Option<String>,
     pub is_active: bool,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -46,6 +47,7 @@ pub struct LoginRequest {
 pub struct UpdateApiKeysRequest {
     pub claude_api_key: Option<String>,
     pub sarvam_api_key: Option<String>,
+    pub groq_api_key: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -61,6 +63,7 @@ pub struct TenantResponse {
     pub company_size: Option<String>,
     pub has_claude_key: bool,
     pub has_sarvam_key: bool,
+    pub has_groq_key: bool,
 }
 
 impl From<Tenant> for TenantResponse {
@@ -77,6 +80,7 @@ impl From<Tenant> for TenantResponse {
             company_size: t.company_size,
             has_claude_key: t.claude_api_key.is_some(),
             has_sarvam_key: t.sarvam_api_key.is_some(),
+            has_groq_key: t.groq_api_key.is_some(),
         }
     }
 }

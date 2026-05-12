@@ -442,15 +442,24 @@ pub async fn parse_jd(
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;
 
-    let claude_key = tenant.claude_api_key
+    // Key resolution: tenant's Groq key → platform Groq key → tenant's Claude key → platform Claude key
+    let (use_groq, api_key) = if let Some(k) = tenant.groq_api_key
+        .or_else(|| state.config.platform_groq_key.clone())
+    {
+        (true, k)
+    } else if let Some(k) = tenant.claude_api_key
         .or_else(|| state.config.platform_claude_key.clone())
-        .ok_or_else(|| (
-            StatusCode::BAD_REQUEST,
-            Json(json!({ "error": "No AI API key configured" })),
-        ))?;
+    {
+        (false, k)
+    } else {
+        return Err((StatusCode::BAD_REQUEST, Json(json!({ "error": "No AI API key configured. Add a Groq key in Settings." }))));
+    };
 
-    let result = state.claude.parse_jd(&claude_key, &jd_text).await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;
+    let result = if use_groq {
+        state.groq.parse_jd(&api_key, &jd_text).await
+    } else {
+        state.claude.parse_jd(&api_key, &jd_text).await
+    }.map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;
 
     Ok(Json(serde_json::to_value(&result).unwrap_or_default()))
 }

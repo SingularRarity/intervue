@@ -14,6 +14,8 @@ pub struct Config {
     pub frontend_url: String,
     pub platform_claude_key: Option<String>,
     pub platform_sarvam_key: Option<String>,
+    pub platform_groq_key: Option<String>,
+    pub llm_provider: String, // "groq" | "claude" — defaults to groq
 }
 
 impl Config {
@@ -39,6 +41,8 @@ impl Config {
                 .unwrap_or_else(|_| "http://localhost:5173".to_string()),
             platform_claude_key: std::env::var("PLATFORM_CLAUDE_KEY").ok(),
             platform_sarvam_key: std::env::var("PLATFORM_SARVAM_KEY").ok(),
+            platform_groq_key: std::env::var("PLATFORM_GROQ_KEY").ok(),
+            llm_provider: std::env::var("LLM_PROVIDER").unwrap_or_else(|_| "groq".to_string()),
         })
     }
 }

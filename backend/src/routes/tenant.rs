@@ -134,10 +134,11 @@ pub async fn update_api_keys(
     Json(req): Json<UpdateApiKeysRequest>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
     sqlx::query(
-        "UPDATE tenants SET claude_api_key = $1, sarvam_api_key = $2, updated_at = $3 WHERE id = $4"
+        "UPDATE tenants SET claude_api_key = $1, sarvam_api_key = $2, groq_api_key = $3, updated_at = $4 WHERE id = $5"
     )
     .bind(&req.claude_api_key)
     .bind(&req.sarvam_api_key)
+    .bind(&req.groq_api_key)
     .bind(Utc::now())
     .bind(claims.sub)
     .execute(state.db.pool())

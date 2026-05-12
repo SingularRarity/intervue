@@ -21,14 +21,15 @@ use auth::{auth_middleware, permission_middleware, RoutePerm};
 use config::Config;
 use db::Database;
 use models::PlanTier;
-use services::{ClaudeService, InterviewEngine, PermissionService, SarvamService};
+use services::{ClaudeService, GroqService, InterviewEngine, PermissionService, SarvamService};
 
 #[derive(Clone)]
 pub struct AppState {
     pub db: Database,
     pub config: Config,
     pub sarvam: SarvamService,
-    pub claude: ClaudeService,
+    pub claude: ClaudeService, // kept for tenants with Claude keys
+    pub groq: GroqService,     // default LLM — free tier at console.groq.com
     pub interview_engine: InterviewEngine,
     pub permissions: Arc<PermissionService>,
 }
@@ -61,11 +62,14 @@ async fn main() -> anyhow::Result<()> {
 
     let sarvam = SarvamService::new();
     let claude = ClaudeService::new();
+    let groq = GroqService::new();
+    let platform_llm_key = config.platform_groq_key.clone()
+        .or_else(|| config.platform_claude_key.clone());
     let interview_engine = InterviewEngine::new(
         db.clone(),
         sarvam.clone(),
         claude.clone(),
-        config.platform_claude_key.clone(),
+        platform_llm_key,
         config.platform_sarvam_key.clone(),
     );
     let permissions = Arc::new(PermissionService::new(db.pool().clone()).await?);
@@ -75,6 +79,7 @@ async fn main() -> anyhow::Result<()> {
         config: config.clone(),
         sarvam,
         claude,
+        groq,
         interview_engine,
         permissions,
     });
