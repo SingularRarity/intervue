@@ -177,6 +177,30 @@ Rules:
             .map_err(|e| anyhow::anyhow!("Failed to parse JD result: {}. Raw: {}", e, clean))
     }
 
+    pub async fn parse_resume(&self, api_key: &str, resume_text: &str) -> anyhow::Result<serde_json::Value> {
+        let system = r#"You are an expert recruiter. Parse the resume and return ONLY a valid JSON object with exactly these fields:
+{
+  "name": "full name",
+  "email": "email address",
+  "phone": "phone number",
+  "current_position": "current or most recent job title",
+  "experience_years": 3.5,
+  "skills": ["skill1", "skill2"],
+  "summary": "2-3 sentence professional summary"
+}
+
+Rules:
+- Use null for any missing fields
+- experience_years: numeric only (e.g. 3.5)
+- skills: specific technologies and tools only
+- No markdown, no code fences, just the JSON object."#;
+
+        let raw = self.complete(api_key, system, resume_text).await?;
+        let clean = strip_markdown(&raw);
+        serde_json::from_str(&clean)
+            .map_err(|e| anyhow::anyhow!("Failed to parse resume result: {}. Raw: {}", e, clean))
+    }
+
     async fn complete(&self, api_key: &str, system: &str, user: &str) -> anyhow::Result<String> {
         let request = ChatRequest {
             model: self.model.clone(),

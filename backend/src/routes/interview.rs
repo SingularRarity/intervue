@@ -349,7 +349,7 @@ pub async fn submit_feedback(
 
 // ---- Text extractors ----
 
-fn extract_text_from_docx(bytes: &[u8]) -> anyhow::Result<String> {
+pub(crate) fn extract_text_from_docx(bytes: &[u8]) -> anyhow::Result<String> {
     use std::io::Read;
     let cursor = std::io::Cursor::new(bytes);
     let mut archive = zip::ZipArchive::new(cursor)?;
@@ -378,7 +378,7 @@ fn extract_text_from_docx(bytes: &[u8]) -> anyhow::Result<String> {
     Ok(text.trim().to_string())
 }
 
-fn extract_text_from_pdf(bytes: &[u8]) -> anyhow::Result<String> {
+pub(crate) fn extract_text_from_pdf(bytes: &[u8]) -> anyhow::Result<String> {
     let doc = lopdf::Document::load_from(bytes)?;
     let pages = doc.get_pages();
     let page_nums: Vec<u32> = pages.keys().copied().collect();

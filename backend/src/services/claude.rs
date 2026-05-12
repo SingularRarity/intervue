@@ -169,6 +169,25 @@ Keep it conversational and professional. Return only the question text."#;
             .map_err(|e| anyhow::anyhow!("Failed to parse JD result: {}. Raw: {}", e, clean))
     }
 
+    pub async fn parse_resume(&self, api_key: &str, resume_text: &str) -> anyhow::Result<serde_json::Value> {
+        let system_prompt = r#"You are an expert recruiter. Parse the resume and return ONLY valid JSON with these fields:
+{
+  "name": "full name",
+  "email": "email address",
+  "phone": "phone number",
+  "current_position": "current or most recent job title",
+  "experience_years": 3.5,
+  "skills": ["skill1", "skill2"],
+  "summary": "2-3 sentence professional summary"
+}
+Use null for any missing fields. No markdown, just the JSON object."#;
+
+        let response = self.call_claude(api_key, system_prompt, resume_text).await?;
+        let clean = crate::services::groq::strip_markdown(&response);
+        serde_json::from_str(&clean)
+            .map_err(|e| anyhow::anyhow!("Failed to parse resume result: {}. Raw: {}", e, clean))
+    }
+
     async fn call_claude(&self, api_key: &str, system: &str, user_message: &str) -> anyhow::Result<String> {
         let request = ClaudeRequest {
             model: "claude-3-5-sonnet-20241022".to_string(),

@@ -49,6 +49,13 @@ export const interviewApi = {
   getCandidates: () => api.get('/candidates'),
   getCandidate: (id: string) => api.get(`/candidates/${id}`),
   parseResume: (resume_text: string) => api.post('/candidates/parse-resume', { resume_text }),
+  parseResumeFile: (file: File) => {
+    const form = new FormData()
+    form.append('file', file)
+    return api.post('/candidates/parse-resume-file', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
 
   createSession: (data: unknown) => api.post('/sessions', data),
   getSession: (id: string) => api.get(`/sessions/${id}`),

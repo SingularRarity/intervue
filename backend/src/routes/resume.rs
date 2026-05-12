@@ -1,24 +1,49 @@
 use axum::{extract::State, http::StatusCode, response::Json};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_json::json;
 use std::sync::Arc;
 
 use crate::{models::AuthClaims, AppState};
+use crate::routes::interview::{extract_text_from_docx, extract_text_from_pdf};
 
 #[derive(Debug, Deserialize)]
 pub struct ParseResumeRequest {
     pub resume_text: String,
 }
 
-#[derive(Debug, Serialize)]
-pub struct ParsedResume {
-    pub name: Option<String>,
-    pub email: Option<String>,
-    pub phone: Option<String>,
-    pub current_position: Option<String>,
-    pub experience_years: Option<f32>,
-    pub skills: Vec<String>,
-    pub summary: Option<String>,
+async fn resolve_and_parse(
+    state: &AppState,
+    tenant_id: uuid::Uuid,
+    resume_text: &str,
+) -> Result<serde_json::Value, (StatusCode, Json<serde_json::Value>)> {
+    let tenant = sqlx::query_as::<_, crate::models::Tenant>(
+        "SELECT * FROM tenants WHERE id = $1"
+    )
+    .bind(tenant_id)
+    .fetch_one(state.db.pool())
+    .await
+    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;
+
+    let (use_groq, api_key) = if let Some(k) = tenant.groq_api_key
+        .or_else(|| state.config.platform_groq_key.clone())
+    {
+        (true, k)
+    } else if let Some(k) = tenant.claude_api_key
+        .or_else(|| state.config.platform_claude_key.clone())
+    {
+        (false, k)
+    } else {
+        return Err((StatusCode::BAD_REQUEST, Json(json!({ "error": "No AI API key configured. Add a Groq key in Settings." }))));
+    };
+
+    let parsed = if use_groq {
+        state.groq.parse_resume(&api_key, resume_text).await
+    } else {
+        state.claude.parse_resume(&api_key, resume_text).await
+    }
+    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;
+
+    Ok(json!({ "parsed": parsed }))
 }
 
 pub async fn parse_resume(
@@ -26,62 +51,48 @@ pub async fn parse_resume(
     claims: axum::Extension<AuthClaims>,
     Json(req): Json<ParseResumeRequest>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
-    let tenant = sqlx::query_as::<_, (Option<String>,)>(
-        "SELECT claude_api_key FROM tenants WHERE id = $1"
-    )
-    .bind(claims.sub)
-    .fetch_one(state.db.pool())
-    .await
-    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;
+    let result = resolve_and_parse(&state, claims.sub, &req.resume_text).await?;
+    Ok(Json(result))
+}
 
-    let api_key = tenant.0.ok_or((
-        StatusCode::BAD_REQUEST,
-        Json(json!({ "error": "Claude API key not configured" })),
-    ))?;
+pub async fn parse_resume_file(
+    State(state): State<Arc<AppState>>,
+    claims: axum::Extension<AuthClaims>,
+    mut multipart: axum::extract::Multipart,
+) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
+    let mut filename = String::new();
+    let mut file_bytes: Vec<u8> = Vec::new();
 
-    let prompt = format!(
-        "Extract structured candidate information from the following resume text. \
-        Return a JSON object with these fields: \
-        name (string), email (string), phone (string), current_position (string), \
-        experience_years (number), skills (array of strings), summary (string). \
-        Use null for missing fields. Resume:\n\n{}",
-        req.resume_text
-    );
+    while let Some(field) = multipart.next_field().await
+        .map_err(|e| (StatusCode::BAD_REQUEST, Json(json!({ "error": e.to_string() }))))? {
+        if field.name() == Some("file") {
+            filename = field.file_name().unwrap_or("file.txt").to_string().to_lowercase();
+            file_bytes = field.bytes().await
+                .map_err(|e| (StatusCode::BAD_REQUEST, Json(json!({ "error": e.to_string() }))))?
+                .to_vec();
+            break;
+        }
+    }
 
-    let client = reqwest::Client::new();
-    let response = client
-        .post("https://api.anthropic.com/v1/messages")
-        .header("x-api-key", &api_key)
-        .header("anthropic-version", "2023-06-01")
-        .json(&json!({
-            "model": "claude-3-5-sonnet-20241022",
-            "max_tokens": 1024,
-            "messages": [{ "role": "user", "content": prompt }]
-        }))
-        .send()
-        .await
-        .map_err(|e| (StatusCode::BAD_GATEWAY, Json(json!({ "error": e.to_string() }))))?;
+    if file_bytes.is_empty() {
+        return Err((StatusCode::BAD_REQUEST, Json(json!({ "error": "No file uploaded" }))));
+    }
 
-    let body: serde_json::Value = response
-        .json()
-        .await
-        .map_err(|e| (StatusCode::BAD_GATEWAY, Json(json!({ "error": e.to_string() }))))?;
+    let resume_text: String = if filename.ends_with(".docx") || filename.ends_with(".doc") {
+        extract_text_from_docx(&file_bytes)
+            .map_err(|e| (StatusCode::UNPROCESSABLE_ENTITY, Json(json!({ "error": format!("Could not read Word document: {}", e) }))))?
+    } else if filename.ends_with(".pdf") {
+        extract_text_from_pdf(&file_bytes)
+            .map_err(|e| (StatusCode::UNPROCESSABLE_ENTITY, Json(json!({ "error": format!("Could not read PDF: {}", e) }))))?
+    } else {
+        String::from_utf8(file_bytes)
+            .map_err(|_| (StatusCode::BAD_REQUEST, Json(json!({ "error": "File is not valid UTF-8 text" }))))?
+    };
 
-    let content = body["content"][0]["text"]
-        .as_str()
-        .unwrap_or("{}")
-        .to_string();
+    if resume_text.trim().is_empty() {
+        return Err((StatusCode::BAD_REQUEST, Json(json!({ "error": "Could not extract any text from the file" }))));
+    }
 
-    // Extract JSON from Claude's response (it may be wrapped in markdown code fences)
-    let json_str = content
-        .trim()
-        .trim_start_matches("```json")
-        .trim_start_matches("```")
-        .trim_end_matches("```")
-        .trim();
-
-    let parsed: serde_json::Value = serde_json::from_str(json_str)
-        .unwrap_or_else(|_| json!({ "skills": [], "summary": content }));
-
-    Ok(Json(json!({ "parsed": parsed })))
+    let result = resolve_and_parse(&state, claims.sub, &resume_text).await?;
+    Ok(Json(result))
 }

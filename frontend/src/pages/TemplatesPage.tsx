@@ -85,13 +85,17 @@ export default function TemplatesPage() {
     queryFn: () => interviewApi.getTemplates().then(r => r.data),
   })
 
+  const effectiveBankDifficulty = (plan === 'free' && bankDifficulty && !['Easy', 'Medium'].includes(bankDifficulty))
+    ? 'Medium'
+    : bankDifficulty
+
   const { data: bankData, isFetching: bankFetching } = useQuery({
-    queryKey: ['questions', bankCategory, bankDifficulty, bankSearch],
+    queryKey: ['questions', bankCategory, effectiveBankDifficulty, bankSearch],
     queryFn: () => questionsApi.list({
       category: bankCategory || undefined,
-      difficulty: bankDifficulty || undefined,
+      difficulty: effectiveBankDifficulty || undefined,
       q: bankSearch || undefined,
-      limit: 30,
+      limit: plan === 'free' ? 10 : 30,
     }).then(r => r.data),
     enabled: showModal && activeTab === 'questions',
   })
@@ -136,8 +140,8 @@ export default function TemplatesPage() {
         title: data.title || f.title,
         description: data.summary || f.description,
         topics: data.topics?.length ? data.topics : f.topics,
-        difficulty: data.difficulty || f.difficulty,
-        interview_type: data.interview_type || f.interview_type,
+        difficulty: plan === 'free' && !['Easy', 'Medium'].includes(data.difficulty) ? 'Medium' : (data.difficulty || f.difficulty),
+        interview_type: plan === 'free' ? 'Screening' : (data.interview_type || f.interview_type),
         duration_minutes: plan === 'free' ? 10 : (data.duration_minutes || f.duration_minutes),
       }))
       toast.success('JD parsed — form auto-filled')
@@ -155,7 +159,11 @@ export default function TemplatesPage() {
   }
 
   const resetForm = () => {
-    setForm({ ...BLANK_FORM, duration_minutes: plan === 'free' ? 10 : 30 })
+    setForm({
+      ...BLANK_FORM,
+      duration_minutes: plan === 'free' ? 10 : 30,
+      interview_type: plan === 'free' ? 'Screening' : BLANK_FORM.interview_type,
+    })
     setActiveTab('details')
     setBankCategory('')
     setBankDifficulty('')
@@ -182,6 +190,8 @@ export default function TemplatesPage() {
       interview_type: template.interview_type,
       difficulty: template.difficulty,
       duration_minutes: plan === 'free' ? 10 : template.duration_minutes,
+      interview_type: plan === 'free' ? 'Screening' : template.interview_type,
+      difficulty: plan === 'free' && !['Easy', 'Medium'].includes(template.difficulty) ? 'Medium' : template.difficulty,
       language: template.language,
       topics: template.topics || [],
       custom_questions: (template.custom_questions || []).map((q: any) =>
@@ -199,11 +209,17 @@ export default function TemplatesPage() {
     setShowModal(true)
   }
 
+  const FREE_QUESTION_LIMIT = 5
+
   const toggleBankQuestion = (q: { question: string; category: string }) => {
     const exists = form.custom_questions.some(cq => cq.question === q.question)
     if (exists) {
       setForm({ ...form, custom_questions: form.custom_questions.filter(cq => cq.question !== q.question) })
     } else {
+      if (plan === 'free' && form.custom_questions.length >= FREE_QUESTION_LIMIT) {
+        toast.error(`Free tier is limited to ${FREE_QUESTION_LIMIT} questions. Upgrade to add more.`)
+        return
+      }
       setForm({ ...form, custom_questions: [...form.custom_questions, q] })
     }
   }
@@ -442,17 +458,24 @@ export default function TemplatesPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-[12px] font-bold uppercase tracking-wider text-dark-400 mb-1.5">Interview Type</label>
-                      <select
-                        value={form.interview_type}
-                        onChange={(e) => setForm({ ...form, interview_type: e.target.value })}
-                        className="input-field"
-                      >
-                        <option value="Technical">Technical</option>
-                        <option value="Behavioral">Behavioral</option>
-                        <option value="Mixed">Mixed</option>
-                        <option value="CultureFit">Culture Fit</option>
-                        <option value="Screening">Screening</option>
-                      </select>
+                      {plan === 'free' ? (
+                        <div className="input-field flex items-center justify-between cursor-not-allowed opacity-70">
+                          <span className="text-dark-200">Screening</span>
+                          <span className="text-[11px] text-primary-400 font-medium">Upgrade to unlock</span>
+                        </div>
+                      ) : (
+                        <select
+                          value={form.interview_type}
+                          onChange={(e) => setForm({ ...form, interview_type: e.target.value })}
+                          className="input-field"
+                        >
+                          <option value="Technical">Technical</option>
+                          <option value="Behavioral">Behavioral</option>
+                          <option value="Mixed">Mixed</option>
+                          <option value="CultureFit">Culture Fit</option>
+                          <option value="Screening">Screening</option>
+                        </select>
+                      )}
                     </div>
                     <div>
                       <label className="block text-[12px] font-bold uppercase tracking-wider text-dark-400 mb-1.5">Difficulty</label>
@@ -463,8 +486,8 @@ export default function TemplatesPage() {
                       >
                         <option value="Easy">Easy</option>
                         <option value="Medium">Medium</option>
-                        <option value="Hard">Hard</option>
-                        <option value="Expert">Expert</option>
+                        {plan !== 'free' && <option value="Hard">Hard</option>}
+                        {plan !== 'free' && <option value="Expert">Expert</option>}
                       </select>
                     </div>
                   </div>
@@ -608,8 +631,8 @@ export default function TemplatesPage() {
                       <option value="">Any difficulty</option>
                       <option value="Easy">Easy</option>
                       <option value="Medium">Medium</option>
-                      <option value="Hard">Hard</option>
-                      <option value="Expert">Expert</option>
+                      {plan !== 'free' && <option value="Hard">Hard</option>}
+                      {plan !== 'free' && <option value="Expert">Expert</option>}
                     </select>
                   </div>
 
@@ -664,6 +687,11 @@ export default function TemplatesPage() {
                   <div className="flex justify-between items-center pt-2 border-t border-dark-100">
                     <p className="text-[12px] text-dark-400">
                       {form.custom_questions.length} selected
+                      {plan === 'free' && (
+                        <span className="ml-1 text-primary-400">
+                          ({FREE_QUESTION_LIMIT - form.custom_questions.length} remaining on free tier)
+                        </span>
+                      )}
                     </p>
                     <button
                       type="button"

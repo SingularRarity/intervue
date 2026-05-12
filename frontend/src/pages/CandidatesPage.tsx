@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Trash2, Loader2, X, User, Mail, Phone, Briefcase, Star, Mic } from 'lucide-react'
+import { Plus, Trash2, Loader2, X, User, Mail, Phone, Briefcase, Mic, Upload, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { interviewApi } from '@/lib/api'
 import toast from 'react-hot-toast'
@@ -20,6 +20,8 @@ export default function CandidatesPage() {
     notes: '',
   })
   const [skillInput, setSkillInput] = useState('')
+  const [resumeParsing, setResumeParsing] = useState(false)
+  const resumeInputRef = useRef<HTMLInputElement>(null)
 
   const queryClient = useQueryClient()
 
@@ -54,6 +56,34 @@ export default function CandidatesPage() {
     },
     onError: (err: any) => toast.error(err.response?.data?.error || 'Failed to create session'),
   })
+
+  const parseResumeMutation = useMutation({
+    mutationFn: (file: File) => interviewApi.parseResumeFile(file).then(r => r.data),
+    onSuccess: (data: any) => {
+      const p = data.parsed ?? {}
+      setForm(f => ({
+        ...f,
+        name: p.name || f.name,
+        email: p.email || f.email,
+        phone: p.phone || f.phone,
+        current_role: p.current_position || f.current_role,
+        experience_years: p.experience_years != null ? String(p.experience_years) : f.experience_years,
+        skills: p.skills?.length ? p.skills : f.skills,
+        resume_text: p.summary || f.resume_text,
+      }))
+      toast.success('Resume parsed — form auto-filled')
+    },
+    onError: (err: any) => toast.error(err.response?.data?.error || 'Failed to parse resume'),
+    onSettled: () => setResumeParsing(false),
+  })
+
+  const handleResumeUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setResumeParsing(true)
+    parseResumeMutation.mutate(file)
+    e.target.value = ''
+  }
 
   const resetForm = () => {
     setForm({
@@ -188,9 +218,30 @@ export default function CandidatesPage() {
           <div className="bg-dark-900 border border-dark-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-dark-800 flex items-center justify-between">
               <h2 className="text-xl font-bold text-white">Add Candidate</h2>
-              <button onClick={() => setShowModal(false)} className="text-dark-400 hover:text-white">
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-3">
+                <input
+                  ref={resumeInputRef}
+                  type="file"
+                  accept=".pdf,.doc,.docx,.txt"
+                  onChange={handleResumeUpload}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => resumeInputRef.current?.click()}
+                  disabled={resumeParsing}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-primary-500/30 bg-primary-500/10 text-primary-400 hover:bg-primary-500/20 text-[13px] font-medium transition-colors disabled:opacity-50"
+                >
+                  {resumeParsing ? (
+                    <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Parsing...</>
+                  ) : (
+                    <><Sparkles className="w-3.5 h-3.5" /><Upload className="w-3.5 h-3.5" /> Upload Resume</>
+                  )}
+                </button>
+                <button onClick={() => setShowModal(false)} className="text-dark-400 hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-6">

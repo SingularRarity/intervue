@@ -174,6 +174,7 @@ async fn main() -> anyhow::Result<()> {
             post(routes::resume::parse_resume)
                 .route_layer(perm!("candidates", "create", PlanTier::Starter)),
         )
+        .route("/api/v1/candidates/parse-resume-file", post(routes::resume::parse_resume_file))
 
         // ---- Protected: sessions ----
         .route(
