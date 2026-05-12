@@ -10,31 +10,37 @@ Three browser-automated demo videos for the Intervue platform. Each shows a real
 
 ## Prerequisites
 
-- Node.js 18+
-- The platform running locally (frontend on `http://localhost:3001`, backend on `http://localhost:8080`)
-- `ffmpeg` in PATH (for post-processing, optional)
+- The platform running locally (`docker compose up` from the project root)
+- Node.js 18+ (host, for audio generation only)
+- Docker Desktop (for the recorder container)
 
-## Quick Start
+## Quick Start — Docker (recommended)
+
+This runs Chromium and Playwright inside a container. Audio is generated on the host first (needs internet for Microsoft Edge TTS), then the container connects to your local platform.
+
+```powershell
+# From the project root — platform must already be running:
+#   docker compose up -d
+
+.\demos\scripts\record-docker.ps1           # all three demos
+.\demos\scripts\record-docker.ps1 -Demo free           # just the free demo
+.\demos\scripts\record-docker.ps1 -SkipAudio -SkipSetup  # skip audio + account setup
+```
+
+Final videos land in `demos/output/final/`.
+
+## Quick Start — Host (Node.js only)
 
 ```bash
 cd demos
 npm install
 npx playwright install chromium
 
-# 1. Generate all TTS audio (one-time, ~5 min)
-npm run generate:audio
-
-# 2. Create demo accounts in the platform
-npm run setup:accounts
-
-# 3. Record all three demos
-npm run demo:all
-
-# 4. Collect final video files
-npm run postprocess:all
+npm run generate:audio   # one-time TTS generation (~5 min)
+npm run setup:accounts   # create demo tenant accounts
+npm run demo:all         # record all three demos
+npm run postprocess:all  # collect final video files
 ```
-
-Final videos are in `output/final/`.
 
 ## Step-by-Step
 

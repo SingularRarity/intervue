@@ -1,0 +1,28 @@
+services:
+  demo-recorder:
+    build:
+      context: ./demos
+      dockerfile: Dockerfile
+    container_name: intervue-demo-recorder
+    environment:
+      # Reach the host's running platform (Docker Desktop on Windows/Mac)
+      PLATFORM_URL: http://host.docker.internal:3001
+      API_URL: http://host.docker.internal:8080
+      DOCKER: "1"
+      # Demo credentials — overridden from demos/.env if present
+      DEMO_FREE_EMAIL: ${DEMO_FREE_EMAIL:-demo-free@intervue.app}
+      DEMO_FREE_PASS: ${DEMO_FREE_PASS:-Intervue@Demo1}
+      DEMO_INDIVIDUAL_EMAIL: ${DEMO_INDIVIDUAL_EMAIL:-demo-individual@intervue.app}
+      DEMO_INDIVIDUAL_PASS: ${DEMO_INDIVIDUAL_PASS:-Intervue@Demo2}
+      DEMO_STARTUP_EMAIL: ${DEMO_STARTUP_EMAIL:-demo-startup@intervue.app}
+      DEMO_STARTUP_PASS: ${DEMO_STARTUP_PASS:-Intervue@Demo3}
+      SARVAM_API_KEY: ${SARVAM_API_KEY:-}
+    volumes:
+      # Audio assets (generate on host first: npm run generate:audio)
+      - ./demos/assets:/demos/assets:ro
+      # Write recordings back to the host
+      - ./demos/output:/demos/output
+    extra_hosts:
+      # Ensure host.docker.internal resolves on Linux too
+      - "host.docker.internal:host-gateway"
+    # Run a specific demo: docker compose -f docker-compose.demo.yml run demo-recorder npx playwright test --project=demo-free

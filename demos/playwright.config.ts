@@ -1,5 +1,11 @@
 import { defineConfig, devices } from '@playwright/test'
 
+// In Docker, PLATFORM_URL is set to http://host.docker.internal:3001
+const BASE_URL = process.env.PLATFORM_URL || 'http://localhost:3001'
+
+// --no-sandbox is required when running as root in Docker
+const isDocker = process.env.DOCKER === '1'
+
 export default defineConfig({
   testDir: './tests',
   timeout: 10 * 60 * 1000, // 10 minutes per test
@@ -8,7 +14,7 @@ export default defineConfig({
   reporter: [['html', { outputFolder: 'report' }], ['list']],
 
   use: {
-    baseURL: 'http://localhost:3001',
+    baseURL: BASE_URL,
     video: {
       mode: 'on',
       size: { width: 1280, height: 800 },
@@ -26,6 +32,7 @@ export default defineConfig({
         '--allow-file-access-from-files',
         '--autoplay-policy=no-user-gesture-required',
         '--disable-web-security',
+        ...(isDocker ? ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'] : []),
       ],
     },
   },
