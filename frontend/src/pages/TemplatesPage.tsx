@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { interviewApi, questionsApi, jdApi } from '@/lib/api'
 import { languages } from '@/lib/utils'
+import { useAuthStore } from '@/lib/store'
 import toast from 'react-hot-toast'
 
 const TYPE_ICONS: Record<string, React.ElementType> = {
@@ -66,6 +67,7 @@ export default function TemplatesPage() {
   const [bankDifficulty, setBankDifficulty] = useState('')
   const [bankSearch, setBankSearch] = useState('')
 
+  const { plan } = useAuthStore()
   const queryClient = useQueryClient()
 
   // Auto-open modal when ?new=1
@@ -136,7 +138,7 @@ export default function TemplatesPage() {
         topics: data.topics?.length ? data.topics : f.topics,
         difficulty: data.difficulty || f.difficulty,
         interview_type: data.interview_type || f.interview_type,
-        duration_minutes: data.duration_minutes || f.duration_minutes,
+        duration_minutes: plan === 'free' ? 10 : (data.duration_minutes || f.duration_minutes),
       }))
       toast.success('JD parsed — form auto-filled')
     },
@@ -153,7 +155,7 @@ export default function TemplatesPage() {
   }
 
   const resetForm = () => {
-    setForm({ ...BLANK_FORM })
+    setForm({ ...BLANK_FORM, duration_minutes: plan === 'free' ? 10 : 30 })
     setActiveTab('details')
     setBankCategory('')
     setBankDifficulty('')
@@ -179,7 +181,7 @@ export default function TemplatesPage() {
       description: template.description || '',
       interview_type: template.interview_type,
       difficulty: template.difficulty,
-      duration_minutes: template.duration_minutes,
+      duration_minutes: plan === 'free' ? 10 : template.duration_minutes,
       language: template.language,
       topics: template.topics || [],
       custom_questions: (template.custom_questions || []).map((q: any) =>
@@ -470,14 +472,21 @@ export default function TemplatesPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-[12px] font-bold uppercase tracking-wider text-dark-400 mb-1.5">Duration (minutes)</label>
-                      <input
-                        type="number"
-                        value={form.duration_minutes}
-                        onChange={(e) => setForm({ ...form, duration_minutes: parseInt(e.target.value) })}
-                        className="input-field"
-                        min={5}
-                        max={120}
-                      />
+                      {plan === 'free' ? (
+                        <div className="input-field flex items-center justify-between cursor-not-allowed opacity-70">
+                          <span className="text-dark-200">10 min</span>
+                          <span className="text-[11px] text-primary-400 font-medium">Upgrade to unlock</span>
+                        </div>
+                      ) : (
+                        <select
+                          value={form.duration_minutes}
+                          onChange={(e) => setForm({ ...form, duration_minutes: parseInt(e.target.value) })}
+                          className="input-field"
+                        >
+                          <option value={30}>30 min</option>
+                          <option value={60}>60 min</option>
+                        </select>
+                      )}
                     </div>
                     <div>
                       <label className="block text-[12px] font-bold uppercase tracking-wider text-dark-400 mb-1.5">Language</label>
