@@ -77,6 +77,10 @@ resource "aws_ecs_task_definition" "backend" {
           valueFrom = aws_ssm_parameter.backend_url.arn
         },
         {
+          name      = "PLATFORM_GROQ_KEY"
+          valueFrom = aws_ssm_parameter.platform_groq_key.arn
+        },
+        {
           name      = "PLATFORM_CLAUDE_KEY"
           valueFrom = aws_ssm_parameter.platform_claude_key.arn
         },

@@ -52,8 +52,9 @@ locals {
 
   # Backend container env — non-sensitive values only; secrets come from SSM
   backend_env = {
-    PORT     = tostring(var.backend_port)
-    APP_ENV  = var.environment == "prod" ? "production" : "development"
-    RUST_LOG = var.environment == "prod" ? "ai_interview_platform=info,tower_http=warn" : "ai_interview_platform=debug,tower_http=debug"
+    PORT         = tostring(var.backend_port)
+    APP_ENV      = var.environment == "prod" ? "production" : "development"
+    RUST_LOG     = var.environment == "prod" ? "ai_interview_platform=info,tower_http=warn" : "ai_interview_platform=debug,tower_http=debug"
+    LLM_PROVIDER = "groq"
   }
 }

@@ -46,9 +46,17 @@ resource "aws_ssm_parameter" "backend_url" {
   tags        = { Name = "backend_url" }
 }
 
+resource "aws_ssm_parameter" "platform_groq_key" {
+  name        = "${local.ssm_prefix}/platform_groq_key"
+  description = "Groq API key - platform managed tenants (default LLM)"
+  type        = "SecureString"
+  value       = var.platform_groq_key != "" ? var.platform_groq_key : "REPLACE_ME"
+  tags        = { Name = "platform_groq_key" }
+}
+
 resource "aws_ssm_parameter" "platform_claude_key" {
   name        = "${local.ssm_prefix}/platform_claude_key"
-  description = "Anthropic API key — platform managed tenants"
+  description = "Anthropic API key - platform managed tenants (fallback)"
   type        = "SecureString"
   value       = var.platform_claude_key != "" ? var.platform_claude_key : "REPLACE_ME"
   tags        = { Name = "platform_claude_key" }

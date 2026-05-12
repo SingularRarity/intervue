@@ -127,8 +127,15 @@ variable "jwt_secret" {
   sensitive   = true
 }
 
+variable "platform_groq_key" {
+  description = "Groq API key for platform-managed tenants (default LLM — free tier)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
 variable "platform_claude_key" {
-  description = "Anthropic API key for platform-managed tenants (free/individual plan)"
+  description = "Anthropic API key — fallback if no Groq key set"
   type        = string
   sensitive   = true
   default     = ""
