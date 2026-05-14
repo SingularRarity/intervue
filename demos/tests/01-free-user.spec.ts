@@ -10,6 +10,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import {
   injectCursor,
+  setupCursorOverlay,
   showScene,
   showCaption,
   hideCaption,
@@ -36,6 +37,7 @@ const PASS = process.env.DEMO_FREE_PASS!
 
 test('Free Plan — Priya Sharma screening', async ({ page, context }) => {
   await setupMicrophoneInjection(context)
+  await setupCursorOverlay(context)
 
   // ── SCENE: INTRO ──────────────────────────────────────────────
   await page.goto('about:blank')
