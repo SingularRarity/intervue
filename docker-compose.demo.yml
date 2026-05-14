@@ -18,8 +18,8 @@ services:
       DEMO_STARTUP_PASS: ${DEMO_STARTUP_PASS:-Intervue@Demo3}
       SARVAM_API_KEY: ${SARVAM_API_KEY:-}
     volumes:
-      # Audio assets (generate on host first: npm run generate:audio)
-      - ./demos/assets:/demos/assets:ro
+      # Assets read-write so generated audio is written back to the host
+      - ./demos/assets:/demos/assets
       # Write recordings back to the host
       - ./demos/output:/demos/output
     extra_hosts:

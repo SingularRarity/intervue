@@ -48,17 +48,17 @@ if (Test-Path $EnvFile) {
     Write-Host "  Loaded .env" -ForegroundColor Gray
 }
 
-# Step 1: Generate audio on the host (needs internet, uses msedge-tts)
+# Step 1: Generate audio inside Docker
 if (-not $SkipAudio) {
     Write-Host ""
-    Write-Host "Step 1/4 - Generating TTS audio..." -ForegroundColor Yellow
-    Set-Location $DemosDir
-    if (-not (Test-Path "node_modules")) {
-        Write-Host "  Installing Node deps..."
-        npm install
-    }
-    node scripts/generate-audio.mjs
-    Set-Location $Root
+    Write-Host "Step 1/4 - Building recorder container..." -ForegroundColor Yellow
+    docker compose -f docker-compose.demo.yml build demo-recorder
+    if ($LASTEXITCODE -ne 0) { throw "Docker build failed" }
+
+    Write-Host ""
+    Write-Host "Step 1/4 - Generating TTS audio inside Docker..." -ForegroundColor Yellow
+    docker compose -f docker-compose.demo.yml run --rm demo-recorder node scripts/generate-audio.mjs
+    if ($LASTEXITCODE -ne 0) { throw "Audio generation failed" }
 } else {
     Write-Host "Step 1/4 - Skipping audio generation" -ForegroundColor Gray
 }
@@ -74,11 +74,13 @@ if (-not $SkipSetup) {
     Write-Host "Step 2/4 - Skipping account setup" -ForegroundColor Gray
 }
 
-# Step 3: Build Docker image
-Write-Host ""
-Write-Host "Step 3/4 - Building recorder container..." -ForegroundColor Yellow
-docker compose -f docker-compose.demo.yml build demo-recorder
-if ($LASTEXITCODE -ne 0) { throw "Docker build failed" }
+# Step 3: Ensure image is built (no-op if already built above)
+if ($SkipAudio) {
+    Write-Host ""
+    Write-Host "Step 3/4 - Building recorder container..." -ForegroundColor Yellow
+    docker compose -f docker-compose.demo.yml build demo-recorder
+    if ($LASTEXITCODE -ne 0) { throw "Docker build failed" }
+}
 
 # Step 4: Run the recorder
 Write-Host ""
