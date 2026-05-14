@@ -8,7 +8,6 @@
 import { test, expect } from '@playwright/test'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import * as dotenv from 'dotenv'
 import {
   injectCursor,
   showScene,
@@ -31,8 +30,6 @@ const NARRATION = path.join(AUDIO, 'narration', 'startup')
 const RESPONSES = path.join(AUDIO, 'responses', 'startup')
 const JD_PATH = path.join(DEMOS_ROOT, 'assets', 'jds', '03-principal-architect.txt')
 const RESUME_PATH = path.join(DEMOS_ROOT, 'assets', 'resumes', '03-sanjay-krishnan.txt')
-
-dotenv.config({ path: path.join(DEMOS_ROOT, '.env') })
 
 const EMAIL = process.env.DEMO_STARTUP_EMAIL!
 const PASS = process.env.DEMO_STARTUP_PASS!
