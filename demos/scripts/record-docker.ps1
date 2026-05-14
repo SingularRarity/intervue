@@ -51,8 +51,8 @@ if (Test-Path $EnvFile) {
 # Step 1: Generate audio inside Docker
 if (-not $SkipAudio) {
     Write-Host ""
-    Write-Host "Step 1/4 - Building recorder container..." -ForegroundColor Yellow
-    docker compose -f docker-compose.demo.yml build demo-recorder
+    Write-Host "Step 1/4 - Building recorder container (no-cache)..." -ForegroundColor Yellow
+    docker compose -f docker-compose.demo.yml build --no-cache demo-recorder
     if ($LASTEXITCODE -ne 0) { throw "Docker build failed" }
 
     Write-Host ""
@@ -78,7 +78,7 @@ if (-not $SkipSetup) {
 if ($SkipAudio) {
     Write-Host ""
     Write-Host "Step 3/4 - Building recorder container..." -ForegroundColor Yellow
-    docker compose -f docker-compose.demo.yml build demo-recorder
+    docker compose -f docker-compose.demo.yml build --no-cache demo-recorder
     if ($LASTEXITCODE -ne 0) { throw "Docker build failed" }
 }
 

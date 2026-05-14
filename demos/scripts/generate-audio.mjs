@@ -55,15 +55,7 @@ async function synthesize(text, voice, outputPath, rate = '+0%', pitch = '+0Hz')
     </speak>
   `.trim()
 
-  await new Promise((resolve, reject) => {
-    const stream = tts.toStream(ssml)
-    const out = fs.createWriteStream(outputPath)
-    stream.on('data', (chunk) => out.write(chunk))
-    stream.on('end', () => out.end())
-    stream.on('close', resolve)
-    stream.on('error', (err) => { out.destroy(); reject(err) })
-    out.on('error', reject)
-  })
+  await tts.rawToFile(outputPath, ssml)
 
   console.log(`  ✓ Generated: ${path.basename(outputPath)}`)
 }
