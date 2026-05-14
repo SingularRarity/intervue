@@ -10,7 +10,7 @@
  * Requires: npm install (msedge-tts is in package.json)
  */
 
-import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts'
+import { spawnSync } from 'child_process'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -34,9 +34,8 @@ for (const dir of [AUDIO_DIR, NARRATION_DIR, RESPONSES_DIR,
 }
 
 // ────────────────────────────────────────
-// TTS helper — msedge-tts v2 API:
-// rawToFile(dirPath, ssml) writes to <dirPath>/audio.mp3 and returns the path.
-// We then rename it to the desired filename.
+// TTS helper — shells out to Python's edge-tts CLI.
+// edge-tts --voice X --text Y --rate=+5% --pitch=+0Hz --write-media out.mp3
 // ────────────────────────────────────────
 async function synthesize(text, voice, outputPath, rate = '+0%', pitch = '+0Hz') {
   if (fs.existsSync(outputPath)) {
@@ -44,20 +43,25 @@ async function synthesize(text, voice, outputPath, rate = '+0%', pitch = '+0Hz')
     return
   }
 
-  const tts = new MsEdgeTTS()
-  await tts.setMetadata(voice, OUTPUT_FORMAT.AUDIO_24KHZ_96KBITRATE_MONO_MP3)
-
-  const ssml = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US"><voice name="${voice}"><prosody rate="${rate}" pitch="${pitch}">${text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</prosody></voice></speak>`
-
   const outDir = path.dirname(outputPath)
-  const result = await tts.rawToFile(outDir, ssml)
-  // v2 writes to <dir>/audio.mp3 — move to the desired filename
-  if (result.audioFilePath !== outputPath) {
-    fs.renameSync(result.audioFilePath, outputPath)
-  }
-  tts.close()
+  if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true })
 
-  console.log(`  ✓ Generated: ${path.basename(outputPath)}`)
+  const result = spawnSync('edge-tts', [
+    '--voice', voice,
+    '--text', text,
+    `--rate=${rate}`,
+    `--pitch=${pitch}`,
+    '--write-media', outputPath,
+  ], { encoding: 'utf8' })
+
+  if (result.status !== 0) {
+    throw new Error(`edge-tts failed (exit ${result.status}): ${result.stderr || result.stdout}`)
+  }
+  if (!fs.existsSync(outputPath)) {
+    throw new Error(`edge-tts ran but produced no file at ${outputPath}`)
+  }
+
+  console.log(`  ✓ Generated: ${path.basename(outputPath)} (${fs.statSync(outputPath).size} bytes)`)
 }
 
 // ────────────────────────────────────────
