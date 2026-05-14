@@ -67,7 +67,7 @@ async function post(url, body) {
 }
 
 async function accountExists(email, password) {
-  const res = await post(`${API_URL}/api/v1/auth/login`, { email, password })
+  const res = await post(`${API_URL}/api/v1/tenants/login`, { email, password })
   return res.ok
 }
 
@@ -80,10 +80,9 @@ async function createAccount({ label, email, password, name }) {
     return
   }
 
-  const reg = await post(`${API_URL}/api/v1/auth/register`, {
+  const reg = await post(`${API_URL}/api/v1/tenants`, {
     email,
     password,
-    name,
     company_name: name,
   })
 
