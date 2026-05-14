@@ -34,7 +34,9 @@ for (const dir of [AUDIO_DIR, NARRATION_DIR, RESPONSES_DIR,
 }
 
 // ────────────────────────────────────────
-// TTS helper
+// TTS helper — msedge-tts v2 API:
+// rawToFile(dirPath, ssml) writes to <dirPath>/audio.mp3 and returns the path.
+// We then rename it to the desired filename.
 // ────────────────────────────────────────
 async function synthesize(text, voice, outputPath, rate = '+0%', pitch = '+0Hz') {
   if (fs.existsSync(outputPath)) {
@@ -45,17 +47,15 @@ async function synthesize(text, voice, outputPath, rate = '+0%', pitch = '+0Hz')
   const tts = new MsEdgeTTS()
   await tts.setMetadata(voice, OUTPUT_FORMAT.AUDIO_24KHZ_96KBITRATE_MONO_MP3)
 
-  const ssml = `
-    <speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US">
-      <voice name="${voice}">
-        <prosody rate="${rate}" pitch="${pitch}">
-          ${text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}
-        </prosody>
-      </voice>
-    </speak>
-  `.trim()
+  const ssml = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US"><voice name="${voice}"><prosody rate="${rate}" pitch="${pitch}">${text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</prosody></voice></speak>`
 
-  await tts.rawToFile(outputPath, ssml)
+  const outDir = path.dirname(outputPath)
+  const result = await tts.rawToFile(outDir, ssml)
+  // v2 writes to <dir>/audio.mp3 — move to the desired filename
+  if (result.audioFilePath !== outputPath) {
+    fs.renameSync(result.audioFilePath, outputPath)
+  }
+  tts.close()
 
   console.log(`  ✓ Generated: ${path.basename(outputPath)}`)
 }
