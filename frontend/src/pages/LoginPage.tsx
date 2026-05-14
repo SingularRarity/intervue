@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import { useAuthStore } from '@/lib/store'
-import { tenantApi } from '@/lib/api'
+import { tenantApi, billingApi } from '@/lib/api'
 import toast from 'react-hot-toast'
 
 export default function LoginPage() {
@@ -18,7 +18,16 @@ export default function LoginPage() {
     setLoading(true)
     try {
       const res = await tenantApi.login({ email, password })
+      // Set auth first so the next API call carries the bearer token
       setAuth(res.data.token, res.data.tenant)
+      // Fetch the actual plan tier — store defaults to 'free'
+      try {
+        const planRes = await billingApi.getPlan()
+        const tier = planRes.data?.plan_tier ?? planRes.data?.tier ?? 'free'
+        setAuth(res.data.token, res.data.tenant, 'tenant_admin', tier)
+      } catch {
+        // Non-fatal: leave plan as 'free'
+      }
       toast.success('Welcome back!')
       navigate('/dashboard')
     } catch (err: any) {
