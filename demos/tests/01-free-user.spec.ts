@@ -68,8 +68,8 @@ test('Free Plan — Priya Sharma screening', async ({ page, context }) => {
   await page.waitForSelector('[role="dialog"], .modal, form', { timeout: 8000 })
   await pause(page, 500)
 
-  // Fill template name
-  await slowType(page, 'input[name="title"], input[placeholder*="title"], input[placeholder*="name"]', 'Junior Frontend Developer Screening')
+  // Fill template name — input has no name, identify by placeholder
+  await slowType(page, 'input[placeholder*="Senior React Developer"]', 'Junior Frontend Developer Screening')
   await pause(page, tmplDur > 0 ? Math.max(0, tmplDur - 4000) : 1000)
   await hideCaption(page)
 

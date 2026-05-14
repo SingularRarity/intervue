@@ -210,6 +210,10 @@ export async function login(page: Page, email: string, password: string) {
     throw err
   }
   await page.waitForLoadState('networkidle')
+  // Dismiss onboarding tour if it appears for new accounts
+  await page.waitForTimeout(800)
+  await page.keyboard.press('Escape').catch(() => {})
+  await page.waitForTimeout(300)
 }
 
 // ──────────────────────────────────────────
