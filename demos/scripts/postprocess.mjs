@@ -36,33 +36,32 @@ function findRecording(projectName) {
     return null
   }
 
-  // Playwright puts videos under: output/recordings/<project>/<test-title>/video.webm
-  // Or sometimes: output/recordings/<project>-<hash>/video.webm
-  function walkDir(dir, depth = 0) {
-    if (depth > 4) return null
-    const entries = fs.readdirSync(dir, { withFileTypes: true })
-    for (const entry of entries) {
-      const fullPath = path.join(dir, entry.name)
-      if (entry.isFile() && (entry.name.endsWith('.webm') || entry.name.endsWith('.mp4'))) {
-        return fullPath
-      }
-      if (entry.isDirectory()) {
-        const found = walkDir(fullPath, depth + 1)
-        if (found) return found
+  // Playwright dir name format: <spec-prefix>-<test-title-slug>-<project>
+  // e.g. "01-free-user-Free-Plan-...-demo-free"
+  // Match by exact "-<project>" suffix to isolate the correct demo's directory.
+  const dirs = fs.readdirSync(RECORDINGS_DIR, { withFileTypes: true })
+    .filter((e) => e.isDirectory() && e.name.endsWith(`-${projectName}`))
+    .map((e) => path.join(RECORDINGS_DIR, e.name))
+
+  if (dirs.length === 0) return null
+
+  // Prefer video.webm (main page recording) over video-1.webm (interview tab).
+  // If both exist, picks the largest (longest recording).
+  let best = null
+  let bestSize = 0
+  for (const dir of dirs) {
+    for (const file of fs.readdirSync(dir)) {
+      if (file.endsWith('.webm') || file.endsWith('.mp4')) {
+        const full = path.join(dir, file)
+        const size = fs.statSync(full).size
+        if (size > bestSize) {
+          bestSize = size
+          best = full
+        }
       }
     }
-    return null
   }
-
-  // Look for project-specific directory first
-  const projectDir = path.join(RECORDINGS_DIR, projectName)
-  if (fs.existsSync(projectDir)) {
-    const found = walkDir(projectDir)
-    if (found) return found
-  }
-
-  // Fallback: search all subdirectories
-  return walkDir(RECORDINGS_DIR)
+  return best
 }
 
 async function processDemo(key) {
