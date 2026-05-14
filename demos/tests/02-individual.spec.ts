@@ -33,7 +33,7 @@ const EMAIL = process.env.DEMO_INDIVIDUAL_EMAIL!
 const PASS = process.env.DEMO_INDIVIDUAL_PASS!
 
 test('Individual Plan — Arjun Mehta full-stack interview', async ({ page, context }) => {
-  test.setTimeout(8 * 60 * 1000)
+  test.setTimeout(12 * 60 * 1000)
 
   await setupMicrophoneInjection(context)
   await setupCursorOverlay(context)

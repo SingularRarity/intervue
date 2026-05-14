@@ -8,7 +8,7 @@ const isDocker = process.env.DOCKER === '1'
 
 export default defineConfig({
   testDir: './tests',
-  timeout: 10 * 60 * 1000, // 10 minutes per test
+  timeout: 20 * 60 * 1000, // 20 minutes per test (startup demo has 5 questions)
   expect: { timeout: 15000 },
   fullyParallel: false, // run demos sequentially
   reporter: [['html', { outputFolder: 'report' }], ['list']],

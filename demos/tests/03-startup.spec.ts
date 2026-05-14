@@ -33,7 +33,7 @@ const EMAIL = process.env.DEMO_STARTUP_EMAIL!
 const PASS = process.env.DEMO_STARTUP_PASS!
 
 test('Startup Plan — Sanjay Krishnan architecture interview', async ({ page, context }) => {
-  test.setTimeout(10 * 60 * 1000)
+  test.setTimeout(18 * 60 * 1000)
 
   await setupMicrophoneInjection(context)
   await setupCursorOverlay(context)

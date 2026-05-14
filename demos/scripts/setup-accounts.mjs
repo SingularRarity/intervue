@@ -41,16 +41,24 @@ const accounts = [
     email: process.env.DEMO_INDIVIDUAL_EMAIL || 'demo-individual@intervue.app',
     password: process.env.DEMO_INDIVIDUAL_PASS || 'Intervue@Demo2',
     name: 'Zeno Fintech',
-    plan: 'individual',
+    plan: 'starter',
   },
   {
     label: 'Startup Plan',
     email: process.env.DEMO_STARTUP_EMAIL || 'demo-startup@intervue.app',
     password: process.env.DEMO_STARTUP_PASS || 'Intervue@Demo3',
     name: 'NovaStar Systems',
-    plan: 'startup',
+    plan: 'growth',
   },
 ]
+
+// NOTE: Plan tier upgrade requires direct DB access (no public API).
+// After running this script, run:
+//   docker compose exec postgres psql -U postgres -d ai_interview \
+//     -c "INSERT INTO tenant_subscriptions (tenant_id, plan_tier, status) \
+//         SELECT id, '<tier>'::plan_tier, 'active'::sub_status FROM tenants WHERE email = '<email>' \
+//         ON CONFLICT (tenant_id) DO UPDATE SET plan_tier = EXCLUDED.plan_tier;"
+// for each non-free account, or use the upgrade-plans.sql helper.
 
 async function post(url, body) {
   const res = await fetch(url, {
