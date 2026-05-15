@@ -37,6 +37,7 @@ services:
       APP_ENV: production
       FRONTEND_URL: http://localhost:3001
       BACKEND_URL: http://localhost:8080
+      CORS_ALLOWED_ORIGINS: http://localhost:3001,http://host.docker.internal:3001,http://localhost:5173
     ports:
       - "8080:8080"
     depends_on:

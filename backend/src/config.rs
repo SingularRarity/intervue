@@ -16,10 +16,30 @@ pub struct Config {
     pub platform_sarvam_key: Option<String>,
     pub platform_groq_key: Option<String>,
     pub llm_provider: String, // "groq" | "claude" — defaults to groq
+    pub cors_allowed_origins: Vec<String>,
 }
 
 impl Config {
     pub fn from_env() -> Result<Self> {
+        let app_env = std::env::var("APP_ENV").unwrap_or_else(|_| "development".to_string());
+
+        // CORS_ALLOWED_ORIGINS — comma-separated. In dev, default to common local hosts.
+        // In production, missing/empty means "no origins" — must be set explicitly.
+        let cors_allowed_origins = std::env::var("CORS_ALLOWED_ORIGINS")
+            .ok()
+            .map(|s| s.split(',').map(|o| o.trim().to_string()).filter(|o| !o.is_empty()).collect::<Vec<_>>())
+            .unwrap_or_else(|| {
+                if app_env == "development" {
+                    vec![
+                        "http://localhost:3001".to_string(),
+                        "http://localhost:5173".to_string(),
+                        "http://host.docker.internal:3001".to_string(),
+                    ]
+                } else {
+                    Vec::new()
+                }
+            });
+
         Ok(Self {
             database_url: std::env::var("DATABASE_URL")
                 .unwrap_or_else(|_| "postgres://postgres:postgres@localhost/ai_interview".to_string()),
@@ -34,7 +54,7 @@ impl Config {
                 .unwrap_or_else(|_| "https://api.anthropic.com".to_string()),
             redis_url: std::env::var("REDIS_URL")
                 .unwrap_or_else(|_| "redis://localhost:6379".to_string()),
-            app_env: std::env::var("APP_ENV").unwrap_or_else(|_| "development".to_string()),
+            app_env,
             google_client_id: std::env::var("GOOGLE_CLIENT_ID").ok(),
             google_client_secret: std::env::var("GOOGLE_CLIENT_SECRET").ok(),
             frontend_url: std::env::var("FRONTEND_URL")
@@ -43,6 +63,7 @@ impl Config {
             platform_sarvam_key: std::env::var("PLATFORM_SARVAM_KEY").ok(),
             platform_groq_key: std::env::var("PLATFORM_GROQ_KEY").ok(),
             llm_provider: std::env::var("LLM_PROVIDER").unwrap_or_else(|_| "groq".to_string()),
+            cors_allowed_origins,
         })
     }
 }

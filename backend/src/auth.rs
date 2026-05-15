@@ -162,9 +162,12 @@ pub async fn auth_middleware(
     let method = request.method().clone();
 
     // Public routes — no token required
+    // /ws/* handles its own auth (browsers can't set Authorization headers on WS upgrades —
+    // ws.rs verifies a JWT or candidate_token from the query string).
     if PUBLIC_PATHS.contains(&path)
         || (path == "/api/v1/tenants" && method == axum::http::Method::POST)
         || path.starts_with("/api/v1/candidate-portal/")
+        || path.starts_with("/ws/")
     {
         return Ok(next.run(request).await);
     }

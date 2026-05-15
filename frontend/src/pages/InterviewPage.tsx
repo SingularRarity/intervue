@@ -54,7 +54,9 @@ export default function InterviewPage() {
     const parsed = token ? JSON.parse(token) : null
     const jwt = parsed?.state?.token
 
-    const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/interview/${sessionId}`
+    const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+    const qs = jwt ? `?token=${encodeURIComponent(jwt)}` : ''
+    const wsUrl = `${proto}//${window.location.host}/ws/interview/${sessionId}${qs}`
     const socket = new WebSocket(wsUrl)
 
     socket.onopen = () => {

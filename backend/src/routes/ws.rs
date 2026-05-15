@@ -1,19 +1,90 @@
 use axum::{
-    extract::{State, Path, WebSocketUpgrade},
+    extract::{Query, State, Path, WebSocketUpgrade},
+    http::StatusCode,
     response::Response,
 };
 use futures::stream::StreamExt;
+use serde::Deserialize;
 use std::sync::Arc;
 use uuid::Uuid;
 
-use crate::AppState;
+use crate::{
+    auth::{verify_tenant_user_token, verify_token},
+    AppState,
+};
+
+#[derive(Debug, Deserialize)]
+pub struct WsAuthQuery {
+    /// JWT bearer token — required for interviewer/tenant connections.
+    /// Browsers can't set Authorization headers on WS upgrades, so we accept via query param.
+    pub token: Option<String>,
+    /// Opaque candidate_token from candidate_portal.generate_candidate_token —
+    /// used when a candidate (no JWT) joins their own interview.
+    pub candidate_token: Option<String>,
+}
 
 pub async fn interview_websocket(
     State(state): State<Arc<AppState>>,
     Path(session_id): Path<Uuid>,
+    Query(q): Query<WsAuthQuery>,
     ws: WebSocketUpgrade,
-) -> Response {
-    ws.on_upgrade(move |socket| handle_socket(socket, state, session_id))
+) -> Result<Response, StatusCode> {
+    // Resolve who's connecting + which tenant the session must belong to.
+    let session_tenant: Uuid = sqlx::query_scalar(
+        "SELECT tenant_id FROM interview_sessions WHERE id = $1"
+    )
+    .bind(session_id)
+    .fetch_optional(state.db.pool())
+    .await
+    .map_err(|e| {
+        tracing::error!("ws auth: session lookup failed: {e}");
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?
+    .ok_or(StatusCode::NOT_FOUND)?;
+
+    // Path A: JWT token (interviewer / HR)
+    if let Some(token) = q.token.as_deref() {
+        let secret = &state.config.jwt_secret;
+        // v2 tenant user token
+        if let Ok(tu) = verify_tenant_user_token(token, secret) {
+            if tu.tenant_id != session_tenant {
+                tracing::warn!("ws auth: tenant mismatch (token={}, session={})", tu.tenant_id, session_tenant);
+                return Err(StatusCode::FORBIDDEN);
+            }
+            return Ok(ws.on_upgrade(move |socket| handle_socket(socket, state, session_id)));
+        }
+        // v1 legacy token (tenant_id as sub)
+        if let Ok(legacy) = verify_token(token, secret) {
+            if legacy.sub != session_tenant {
+                tracing::warn!("ws auth: tenant mismatch (legacy token sub={}, session={})", legacy.sub, session_tenant);
+                return Err(StatusCode::FORBIDDEN);
+            }
+            return Ok(ws.on_upgrade(move |socket| handle_socket(socket, state, session_id)));
+        }
+        return Err(StatusCode::UNAUTHORIZED);
+    }
+
+    // Path B: candidate_token (no JWT, candidate-side)
+    if let Some(ct) = q.candidate_token.as_deref() {
+        let valid: Option<Uuid> = sqlx::query_scalar(
+            "SELECT id FROM interview_sessions WHERE id = $1 AND candidate_token = $2"
+        )
+        .bind(session_id)
+        .bind(ct)
+        .fetch_optional(state.db.pool())
+        .await
+        .map_err(|e| {
+            tracing::error!("ws auth: candidate_token lookup failed: {e}");
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
+
+        if valid.is_some() {
+            return Ok(ws.on_upgrade(move |socket| handle_socket(socket, state, session_id)));
+        }
+        return Err(StatusCode::UNAUTHORIZED);
+    }
+
+    Err(StatusCode::UNAUTHORIZED)
 }
 
 async fn handle_socket(
@@ -22,12 +93,14 @@ async fn handle_socket(
     session_id: Uuid,
 ) {
     // Update session status to InProgress
-    let _ = sqlx::query(
+    if let Err(e) = sqlx::query(
         "UPDATE interview_sessions SET status = 'InProgress', started_at = NOW() WHERE id = $1"
     )
     .bind(session_id)
     .execute(state.db.pool())
-    .await;
+    .await {
+        tracing::error!("ws: failed to mark session {session_id} InProgress: {e}");
+    }
 
     // Send welcome message
     let welcome = serde_json::json!({
@@ -50,15 +123,12 @@ async fn handle_socket(
 
                         match msg_type {
                             "audio_chunk" => {
-                                // Handle audio chunk from candidate
-                                // In production: stream to Sarvam STT, get text, send to Claude, get response, TTS via Sarvam
                                 let response = serde_json::json!({
                                     "type": "processing",
                                     "message": "Processing your response...",
                                 });
                                 let _ = socket.send(axum::extract::ws::Message::Text(response.to_string())).await;
 
-                                // Process through interview engine
                                 match state.interview_engine.process_audio_chunk(session_id, &data).await {
                                     Ok(result) => {
                                         let _ = socket.send(axum::extract::ws::Message::Text(
@@ -66,16 +136,16 @@ async fn handle_socket(
                                         )).await;
                                     }
                                     Err(e) => {
+                                        tracing::error!("ws: audio processing failed for session {session_id}: {e}");
                                         let error = serde_json::json!({
                                             "type": "error",
-                                            "message": format!("Processing error: {}", e),
+                                            "message": "Audio processing failed. Please retry.",
                                         });
                                         let _ = socket.send(axum::extract::ws::Message::Text(error.to_string())).await;
                                     }
                                 }
                             }
                             "text_message" => {
-                                // Handle text message from candidate (fallback)
                                 if let Some(content) = data.get("content").and_then(|v| v.as_str()) {
                                     match state.interview_engine.process_text_message(session_id, content).await {
                                         Ok(result) => {
@@ -84,9 +154,10 @@ async fn handle_socket(
                                             )).await;
                                         }
                                         Err(e) => {
+                                            tracing::error!("ws: text processing failed for session {session_id}: {e}");
                                             let error = serde_json::json!({
                                                 "type": "error",
-                                                "message": format!("Processing error: {}", e),
+                                                "message": "Message processing failed. Please retry.",
                                             });
                                             let _ = socket.send(axum::extract::ws::Message::Text(error.to_string())).await;
                                         }
@@ -94,7 +165,6 @@ async fn handle_socket(
                                 }
                             }
                             "end_interview" => {
-                                // End interview and generate results
                                 match state.interview_engine.finalize_interview(session_id).await {
                                     Ok(result) => {
                                         let _ = socket.send(axum::extract::ws::Message::Text(
@@ -102,9 +172,10 @@ async fn handle_socket(
                                         )).await;
                                     }
                                     Err(e) => {
+                                        tracing::error!("ws: finalization failed for session {session_id}: {e}");
                                         let error = serde_json::json!({
                                             "type": "error",
-                                            "message": format!("Finalization error: {}", e),
+                                            "message": "Finalization failed. Please retry.",
                                         });
                                         let _ = socket.send(axum::extract::ws::Message::Text(error.to_string())).await;
                                     }
@@ -120,17 +191,17 @@ async fn handle_socket(
                             }
                         }
                     }
-                    Err(e) => {
+                    Err(_) => {
+                        // Don't echo the parse error — could leak structure
                         let error = serde_json::json!({
                             "type": "error",
-                            "message": format!("Invalid JSON: {}", e),
+                            "message": "Invalid JSON payload",
                         });
                         let _ = socket.send(axum::extract::ws::Message::Text(error.to_string())).await;
                     }
                 }
             }
             axum::extract::ws::Message::Close(_) => {
-                // Mark session as completed if not already
                 let _ = sqlx::query(
                     "UPDATE interview_sessions SET status = 'Completed', completed_at = NOW() WHERE id = $1 AND status = 'InProgress'"
                 )

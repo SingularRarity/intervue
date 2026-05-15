@@ -6,7 +6,8 @@ use axum::{
 };
 use std::net::SocketAddr;
 use std::sync::Arc;
-use tower_http::cors::{Any, CorsLayer};
+use axum::http::HeaderValue;
+use tower_http::cors::{Any, AllowOrigin, CorsLayer};
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -15,6 +16,7 @@ mod config;
 mod db;
 mod models;
 mod routes;
+mod security;
 mod services;
 
 use auth::{auth_middleware, permission_middleware, RoutePerm};
@@ -84,16 +86,33 @@ async fn main() -> anyhow::Result<()> {
         permissions,
     });
 
-    let cors = CorsLayer::new()
-        .allow_origin(Any)
-        .allow_methods(Any)
-        .allow_headers(Any);
+    // CORS — allowlist driven by CORS_ALLOWED_ORIGINS env var.
+    // Methods/headers are wide (we control the API and trust the origin).
+    let cors = if config.cors_allowed_origins.is_empty() {
+        tracing::warn!("CORS_ALLOWED_ORIGINS not set — all cross-origin requests will be blocked");
+        CorsLayer::new()
+            .allow_methods(Any)
+            .allow_headers(Any)
+    } else {
+        let origins: Vec<HeaderValue> = config.cors_allowed_origins.iter()
+            .filter_map(|o| HeaderValue::from_str(o).ok())
+            .collect();
+        tracing::info!("CORS allowed origins: {:?}", config.cors_allowed_origins);
+        CorsLayer::new()
+            .allow_origin(AllowOrigin::list(origins))
+            .allow_methods(Any)
+            .allow_headers(Any)
+    };
 
     // ------------------------------------------------------------------
     // Admin sub-router (god admin only — god_only() guards each handler)
     // ------------------------------------------------------------------
     let admin_router = Router::new()
-        .route("/auth/login", post(routes::admin::admin_login))
+        .route(
+            "/auth/login",
+            post(routes::admin::admin_login)
+                .route_layer(middleware::from_fn(security::auth_rate_limit)),
+        )
         .route("/auth/me", get(routes::admin::admin_me))
         .route("/tenants", get(routes::admin::list_tenants))
         .route("/tenants/:id/plan", put(routes::admin::set_tenant_plan))
@@ -111,12 +130,20 @@ async fn main() -> anyhow::Result<()> {
         // ---- Public ----
         .route("/health", get(routes::health_check))
         .route("/api/v1/tenants", post(routes::tenant::create_tenant))
-        .route("/api/v1/tenants/login", post(routes::tenant::login_tenant))
+        .route(
+            "/api/v1/tenants/login",
+            post(routes::tenant::login_tenant)
+                .route_layer(middleware::from_fn(security::auth_rate_limit)),
+        )
         .route("/api/v1/oauth/google", get(routes::oauth::google_auth))
         .route("/api/v1/oauth/google/callback", get(routes::oauth::google_callback))
         .route("/api/v1/candidate-portal/:token", get(routes::candidate_portal::get_session_by_token))
         .route("/api/v1/billing/plans", get(routes::billing::list_plans))
-        .route("/api/v1/team/accept-invite", post(routes::team::accept_invite))
+        .route(
+            "/api/v1/team/accept-invite",
+            post(routes::team::accept_invite)
+                .route_layer(middleware::from_fn(security::auth_rate_limit)),
+        )
 
         // ---- Protected: tenant profile ----
         .route("/api/v1/tenants/me", get(routes::tenant::get_current_tenant))
@@ -256,7 +283,9 @@ async fn main() -> anyhow::Result<()> {
     tracing::info!("Server starting on {}", addr);
 
     let listener = tokio::net::TcpListener::bind(addr).await?;
-    axum::serve(listener, app).await?;
+    // into_make_service_with_connect_info gives middlewares access to ConnectInfo<SocketAddr>
+    // (required by the rate limiter to key on peer IP).
+    axum::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>()).await?;
 
     Ok(())
 }

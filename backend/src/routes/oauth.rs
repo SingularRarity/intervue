@@ -12,6 +12,7 @@ use uuid::Uuid;
 use crate::{
     auth::create_token,
     models::{AuthClaims, Tenant},
+    security::{consume_oauth_state, issue_oauth_state},
     AppState,
 };
 
@@ -34,11 +35,17 @@ pub async fn google_auth(
         }
     };
 
+    // CSRF protection: generate one-time `state`, stash server-side, send to Google.
+    // Callback must echo it back; we consume + verify (single-use, 10-min TTL).
+    let state_token = Uuid::new_v4().to_string();
+    issue_oauth_state(state_token.clone());
+
     let url = format!(
-        "{}?client_id={}&redirect_uri={}&response_type=code&scope=email+profile&access_type=offline&prompt=select_account",
+        "{}?client_id={}&redirect_uri={}&response_type=code&scope=email+profile&access_type=offline&prompt=select_account&state={}",
         GOOGLE_AUTH_URL,
         urlencoding::encode(&client_id),
         urlencoding::encode(&redirect_uri),
+        urlencoding::encode(&state_token),
     );
 
     Redirect::to(&url).into_response()
@@ -48,6 +55,7 @@ pub async fn google_auth(
 pub struct OAuthCallbackQuery {
     pub code: Option<String>,
     pub error: Option<String>,
+    pub state: Option<String>,
 }
 
 /// GET /api/v1/oauth/google/callback — Google redirects here after consent.
@@ -64,6 +72,19 @@ pub async fn google_callback(
             urlencoding::encode(&err)
         ))
         .into_response();
+    }
+
+    // CSRF: verify state echoed back matches one we issued and hasn't been used.
+    match query.state.as_deref() {
+        Some(s) if consume_oauth_state(s) => {}
+        _ => {
+            tracing::warn!("OAuth callback rejected: missing/invalid state param");
+            return Redirect::to(&format!(
+                "{}/oauth/callback?error=Invalid+or+expired+OAuth+state",
+                frontend_url
+            ))
+            .into_response();
+        }
     }
 
     let code = match query.code {
