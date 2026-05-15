@@ -50,12 +50,21 @@ export default function InterviewPage() {
   useEffect(() => {
     if (!sessionId) return
 
-    const token = localStorage.getItem('auth-storage')
-    const parsed = token ? JSON.parse(token) : null
+    // Prefer ?candidate_token=… in the URL (candidate-side flow, no JWT available).
+    // Otherwise use the HR's JWT from localStorage.
+    const urlParams = new URLSearchParams(window.location.search)
+    const candidateToken = urlParams.get('candidate_token')
+
+    const stored = localStorage.getItem('auth-storage')
+    const parsed = stored ? JSON.parse(stored) : null
     const jwt = parsed?.state?.token
 
     const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-    const qs = jwt ? `?token=${encodeURIComponent(jwt)}` : ''
+    const qs = candidateToken
+      ? `?candidate_token=${encodeURIComponent(candidateToken)}`
+      : jwt
+        ? `?token=${encodeURIComponent(jwt)}`
+        : ''
     const wsUrl = `${proto}//${window.location.host}/ws/interview/${sessionId}${qs}`
     const socket = new WebSocket(wsUrl)
 

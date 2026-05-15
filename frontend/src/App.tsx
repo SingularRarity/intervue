@@ -62,12 +62,16 @@ function App() {
         element={token ? <CodeAssessmentPage /> : <Navigate to="/login" />}
       />
 
+      {/* Interview UI — public so candidates (no JWT, only ?candidate_token=) can join.
+          InterviewPage decides at runtime whether to use the candidate_token from the
+          URL or the JWT from localStorage. */}
+      <Route path="/interview/:sessionId" element={<InterviewPage />} />
+
       {/* Protected app routes with sidebar */}
       <Route element={token ? <Layout /> : <Navigate to="/login" />}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/templates" element={<TemplatesPage />} />
         <Route path="/candidates" element={<CandidatesPage />} />
-        <Route path="/interview/:sessionId" element={<InterviewPage />} />
         <Route path="/results/:sessionId" element={<SessionResultsPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/settings" element={<SettingsPage />} />

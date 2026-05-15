@@ -56,12 +56,15 @@ export const interviewApi = {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
   },
+  refreshGithub: (id: string) => api.post(`/candidates/${id}/refresh-github`),
 
   createSession: (data: unknown) => api.post('/sessions', data),
   getSession: (id: string) => api.get(`/sessions/${id}`),
   getSessionResults: (id: string) => api.get(`/sessions/${id}/results`),
   submitFeedback: (id: string, data: unknown) => api.post(`/sessions/${id}/feedback`, data),
   generateInviteToken: (id: string) => api.post(`/sessions/${id}/invite-token`),
+  draftInviteEmail: (id: string, body?: { frontend_url?: string }) =>
+    api.post(`/sessions/${id}/draft-invite`, body ?? {}),
   pushToAts: (id: string) => api.post(`/sessions/${id}/ats-push`),
   getProctoringReport: (id: string) => api.get(`/sessions/${id}/proctoring`),
   getCodingChallenge: (id: string) => api.get(`/sessions/${id}/coding`),

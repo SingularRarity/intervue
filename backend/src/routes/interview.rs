@@ -167,11 +167,16 @@ pub async fn create_candidate(
         ));
     }
 
+    let project_urls_json = serde_json::to_value(&req.project_urls)
+        .unwrap_or_else(|_| serde_json::Value::Array(vec![]));
+
     let candidate = sqlx::query_as::<_, Candidate>(
         r#"
-        INSERT INTO candidates 
-        (id, tenant_id, name, email, phone, resume_text, skills, experience_years, current_position, notes, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        INSERT INTO candidates
+        (id, tenant_id, name, email, phone, resume_text, skills, experience_years, current_position, notes,
+         linkedin_url, github_url, portfolio_url, project_urls,
+         created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
         RETURNING *
         "#
     )
@@ -185,11 +190,18 @@ pub async fn create_candidate(
     .bind(req.experience_years)
     .bind(&req.current_position)
     .bind(&req.notes)
+    .bind(&req.linkedin_url)
+    .bind(&req.github_url)
+    .bind(&req.portfolio_url)
+    .bind(&project_urls_json)
     .bind(Utc::now())
     .bind(Utc::now())
     .fetch_one(state.db.pool())
     .await
-    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;
+    .map_err(|e| {
+        tracing::error!("create_candidate db error: {e}");
+        (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": "Failed to create candidate" })))
+    })?;
 
     Ok(Json(candidate))
 }

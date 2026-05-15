@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Mic, Video, Clock, Globe, CheckCircle, ArrowRight, Wifi } from 'lucide-react'
+import { Mic, Video, Clock, Globe, CheckCircle, ArrowRight, Wifi, MicOff } from 'lucide-react'
 
 interface SessionInfo {
   session_id: string
@@ -25,6 +25,11 @@ export default function CandidatePortalPage() {
   const [info, setInfo] = useState<SessionInfo | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+  const [micChecked, setMicChecked] = useState(false)
+  const [micLevel, setMicLevel] = useState(0)
+  const [micError, setMicError] = useState('')
+  const [consent, setConsent] = useState(false)
+  const streamRef = useRef<MediaStream | null>(null)
 
   useEffect(() => {
     fetch(`/api/v1/candidate-portal/${token}`)
@@ -39,11 +44,52 @@ export default function CandidatePortalPage() {
 
   const startInterview = () => {
     if (!info) return
-    const path =
+    // Pass the candidate_token through so InterviewPage can authenticate the WS connection
+    // without a JWT (candidate has no account).
+    const base =
       info.session_type === 'video'
         ? `/video-interview/${info.session_id}`
         : `/interview/${info.session_id}`
-    navigate(path)
+    navigate(`${base}?candidate_token=${encodeURIComponent(token!)}`)
+  }
+
+  const runMicCheck = async () => {
+    setMicError('')
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      streamRef.current = stream
+      // Show a live level meter for ~3 seconds, then call it good.
+      const ctx = new AudioContext()
+      const src = ctx.createMediaStreamSource(stream)
+      const analyser = ctx.createAnalyser()
+      analyser.fftSize = 256
+      src.connect(analyser)
+      const data = new Uint8Array(analyser.frequencyBinCount)
+
+      const t0 = Date.now()
+      let peak = 0
+      const tick = () => {
+        analyser.getByteFrequencyData(data)
+        const avg = data.reduce((a, b) => a + b, 0) / data.length
+        peak = Math.max(peak, avg)
+        setMicLevel(avg)
+        if (Date.now() - t0 < 3000) {
+          requestAnimationFrame(tick)
+        } else {
+          // Stop tracks — we just wanted to confirm hardware works
+          stream.getTracks().forEach((t) => t.stop())
+          ctx.close()
+          if (peak < 5) {
+            setMicError("We didn't pick up any sound. Try speaking — or check your mic permissions.")
+          } else {
+            setMicChecked(true)
+          }
+        }
+      }
+      tick()
+    } catch (e: any) {
+      setMicError(e.message || 'Could not access microphone. Please grant permission and try again.')
+    }
   }
 
   if (loading) {
@@ -137,7 +183,7 @@ export default function CandidatePortalPage() {
           <span className="w-3 h-3 bg-primary-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
         </div>
 
-        {/* CTA */}
+        {/* CTA — multi-step: mic check → consent → ready */}
         {info.status === 'Completed' ? (
           <div className="text-center py-4">
             <span className="inline-flex items-center gap-2 text-primary-600 text-sm font-medium">
@@ -145,20 +191,63 @@ export default function CandidatePortalPage() {
               This interview has already been completed.
             </span>
           </div>
+        ) : !micChecked ? (
+          <div className="bg-white border border-dark-200 rounded-xl p-6">
+            <h3 className="text-sm font-semibold text-dark-900 mb-1">Step 1 of 2 — Check your microphone</h3>
+            <p className="text-[13px] text-dark-500 mb-4">
+              Quick 3-second test. Just say "hello" once you click below.
+            </p>
+            <button
+              onClick={runMicCheck}
+              className="w-full bg-dark-900 hover:bg-dark-800 text-white h-12 rounded-lg font-medium text-[14px] transition-colors flex items-center justify-center gap-2"
+            >
+              <Mic className="w-4 h-4" />
+              Run Mic Check
+            </button>
+            {micLevel > 0 && (
+              <div className="mt-4">
+                <div className="h-2 bg-dark-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-primary-500 transition-all" style={{ width: `${Math.min(100, micLevel * 2)}%` }} />
+                </div>
+                <p className="text-[11px] text-dark-400 mt-2 text-center">Listening...</p>
+              </div>
+            )}
+            {micError && (
+              <p className="mt-4 text-[12px] text-red-600 flex items-center gap-2">
+                <MicOff className="w-4 h-4" />
+                {micError}
+              </p>
+            )}
+          </div>
         ) : (
-          <>
+          <div className="bg-white border border-dark-200 rounded-xl p-6">
+            <h3 className="text-sm font-semibold text-dark-900 mb-1 flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-primary-500" />
+              Mic looks good — Step 2 of 2
+            </h3>
+            <p className="text-[13px] text-dark-500 mb-4">
+              Just one quick consent before we begin.
+            </p>
+            <label className="flex items-start gap-3 cursor-pointer mb-5">
+              <input
+                type="checkbox"
+                checked={consent}
+                onChange={(e) => setConsent(e.target.checked)}
+                className="mt-0.5 w-4 h-4 accent-primary-500"
+              />
+              <span className="text-[13px] text-dark-700 leading-relaxed">
+                I understand that <strong>{company}</strong> will record audio of this interview for evaluation purposes, and that AI will be used to score my responses. I can stop at any time.
+              </span>
+            </label>
             <button
               onClick={startInterview}
-              className="w-full bg-primary-500 hover:bg-primary-600 text-white h-14 rounded-xl font-semibold text-[15px] transition-colors shadow-sm active:scale-[0.98] flex items-center justify-center gap-2"
+              disabled={!consent}
+              className="w-full bg-primary-500 hover:bg-primary-600 disabled:bg-dark-200 disabled:cursor-not-allowed text-white h-14 rounded-xl font-semibold text-[15px] transition-colors shadow-sm active:scale-[0.98] flex items-center justify-center gap-2"
             >
-              Start Interview
+              I'm Ready — Start Interview
               <ArrowRight className="w-4 h-4" />
             </button>
-            <p className="text-center text-[11px] text-dark-400 mt-3">
-              By clicking start, you agree to our{' '}
-              <a href="#" className="underline">Terms of Service</a>.
-            </p>
-          </>
+          </div>
         )}
       </main>
 

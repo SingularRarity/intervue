@@ -186,19 +186,32 @@ Rules:
   "current_position": "current or most recent job title",
   "experience_years": 3.5,
   "skills": ["skill1", "skill2"],
-  "summary": "2-3 sentence professional summary"
+  "summary": "2-3 sentence professional summary",
+  "linkedin_url": "https://linkedin.com/in/username",
+  "github_url": "https://github.com/username",
+  "portfolio_url": "personal site URL",
+  "project_urls": ["https://example.com/project1", "https://github.com/u/repo"]
 }
 
 Rules:
-- Use null for any missing fields
+- Use null for any missing string fields (project_urls defaults to empty array [])
 - experience_years: numeric only (e.g. 3.5)
 - skills: specific technologies and tools only
+- linkedin_url / github_url / portfolio_url: full https:// URLs. If resume writes "linkedin.com/in/foo" without scheme, prefix with https://.
+- portfolio_url is the candidate's personal site only — NOT LinkedIn, NOT GitHub.
+- project_urls: every distinct URL in the resume body that points to a deployed project, live demo, or repo (excluding the linkedin/github/portfolio ones already captured above).
 - No markdown, no code fences, just the JSON object."#;
 
         let raw = self.complete(api_key, system, resume_text).await?;
         let clean = strip_markdown(&raw);
         serde_json::from_str(&clean)
             .map_err(|e| anyhow::anyhow!("Failed to parse resume result: {}. Raw: {}", e, clean))
+    }
+
+    /// Public wrapper for one-shot LLM completions used outside this file
+    /// (e.g. routes::invite for personalized email closing lines).
+    pub async fn complete_public(&self, api_key: &str, system: &str, user: &str) -> anyhow::Result<String> {
+        self.complete(api_key, system, user).await
     }
 
     async fn complete(&self, api_key: &str, system: &str, user: &str) -> anyhow::Result<String> {

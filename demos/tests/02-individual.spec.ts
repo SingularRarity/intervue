@@ -9,6 +9,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import {
   setupCursorOverlay,
+  startAudioTimeline,
   showScene,
   showCaption,
   hideCaption,
@@ -37,6 +38,7 @@ test('Individual Plan — Arjun Mehta full-stack interview', async ({ page, cont
 
   await setupMicrophoneInjection(context)
   await setupCursorOverlay(context)
+  startAudioTimeline(path.join(DEMOS_ROOT, 'output', 'timelines', 'demo-individual'))
 
   // ── INTRO ──────────────────────────────────────────
   await page.goto('about:blank')

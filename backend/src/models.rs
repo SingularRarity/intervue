@@ -158,6 +158,15 @@ pub struct Candidate {
     pub experience_years: Option<f32>,
     pub current_position: Option<String>,
     pub notes: Option<String>,
+    // Professional profile links — extracted by resume parser (migration 005)
+    pub linkedin_url: Option<String>,
+    pub github_url: Option<String>,
+    pub portfolio_url: Option<String>,
+    #[serde(default)]
+    pub project_urls: serde_json::Value,
+    // GitHub ranking cache (populated by services::github)
+    pub github_profile: Option<serde_json::Value>,
+    pub github_fetched_at: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -174,6 +183,12 @@ pub struct CreateCandidateRequest {
     pub experience_years: Option<f32>,
     pub current_position: Option<String>,
     pub notes: Option<String>,
+    // Optional — passed through from resume parse output if present
+    pub linkedin_url: Option<String>,
+    pub github_url: Option<String>,
+    pub portfolio_url: Option<String>,
+    #[serde(default)]
+    pub project_urls: Vec<String>,
 }
 
 // ============== INTERVIEW SESSION MODELS ==============

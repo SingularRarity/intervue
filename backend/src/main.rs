@@ -23,7 +23,7 @@ use auth::{auth_middleware, permission_middleware, RoutePerm};
 use config::Config;
 use db::Database;
 use models::PlanTier;
-use services::{ClaudeService, GroqService, InterviewEngine, PermissionService, SarvamService};
+use services::{ClaudeService, GithubService, GroqService, InterviewEngine, PermissionService, SarvamService};
 
 #[derive(Clone)]
 pub struct AppState {
@@ -32,6 +32,7 @@ pub struct AppState {
     pub sarvam: SarvamService,
     pub claude: ClaudeService, // kept for tenants with Claude keys
     pub groq: GroqService,     // default LLM — free tier at console.groq.com
+    pub github: GithubService, // GitHub profile + ranking
     pub interview_engine: InterviewEngine,
     pub permissions: Arc<PermissionService>,
 }
@@ -65,6 +66,7 @@ async fn main() -> anyhow::Result<()> {
     let sarvam = SarvamService::new();
     let claude = ClaudeService::new();
     let groq = GroqService::new();
+    let github = GithubService::new();
     let platform_llm_key = config.platform_groq_key.clone()
         .or_else(|| config.platform_claude_key.clone());
     let interview_engine = InterviewEngine::new(
@@ -82,6 +84,7 @@ async fn main() -> anyhow::Result<()> {
         sarvam,
         claude,
         groq,
+        github,
         interview_engine,
         permissions,
     });
@@ -202,6 +205,10 @@ async fn main() -> anyhow::Result<()> {
                 .route_layer(perm!("candidates", "create", PlanTier::Starter)),
         )
         .route("/api/v1/candidates/parse-resume-file", post(routes::resume::parse_resume_file))
+        .route(
+            "/api/v1/candidates/:id/refresh-github",
+            post(routes::candidates_extra::refresh_github),
+        )
 
         // ---- Protected: sessions ----
         .route(
@@ -217,6 +224,7 @@ async fn main() -> anyhow::Result<()> {
                 .route_layer(perm!("sessions", "feedback", PlanTier::Free)),
         )
         .route("/api/v1/sessions/:id/invite-token", post(routes::candidate_portal::generate_candidate_token))
+        .route("/api/v1/sessions/:id/draft-invite", post(routes::invite::draft_invite_email))
         .route(
             "/api/v1/sessions/:id/ats-push",
             post(routes::ats::push_to_ats)

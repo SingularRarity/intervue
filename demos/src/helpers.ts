@@ -3,6 +3,32 @@ import fs from 'fs'
 import path from 'path'
 
 // ──────────────────────────────────────────
+// Audio playback timeline tracker
+// Records timestamps of every narration / response playback so postprocess
+// can mux a real audio track onto the (silent) Playwright video recording.
+// ──────────────────────────────────────────
+type AudioEvent = { type: 'narration' | 'response'; file: string; startMs: number; durationMs: number }
+let _timelineStart: number | null = null
+const _events: AudioEvent[] = []
+let _timelinePath: string | null = null
+
+export function startAudioTimeline(outDir: string) {
+  _timelineStart = Date.now()
+  _events.length = 0
+  if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true })
+  _timelinePath = path.join(outDir, 'audio-timeline.json')
+}
+
+function recordEvent(type: 'narration' | 'response', file: string, durationMs: number) {
+  if (_timelineStart == null) return
+  const startMs = Date.now() - _timelineStart
+  _events.push({ type, file, startMs, durationMs })
+  if (_timelinePath) {
+    fs.writeFileSync(_timelinePath, JSON.stringify({ events: _events }, null, 2))
+  }
+}
+
+// ──────────────────────────────────────────
 // Cursor + caption overlay — installed once per context.
 // addInitScript runs on EVERY page navigation, so the overlay survives login redirects.
 // ──────────────────────────────────────────
@@ -286,6 +312,8 @@ export async function injectAudioResponse(page: Page, audioPath: string) {
     { b64: base64, extension: ext }
   )
 
+  // Record on the timeline so postprocess can mux this onto the video
+  recordEvent('response', audioPath, durationMs as number)
   return durationMs as number
 }
 
@@ -322,5 +350,6 @@ export async function playNarration(page: Page, audioPath: string): Promise<numb
     { b64: base64, extension: ext }
   )
 
+  recordEvent('narration', audioPath, durationMs)
   return durationMs
 }

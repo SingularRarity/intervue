@@ -178,9 +178,13 @@ Keep it conversational and professional. Return only the question text."#;
   "current_position": "current or most recent job title",
   "experience_years": 3.5,
   "skills": ["skill1", "skill2"],
-  "summary": "2-3 sentence professional summary"
+  "summary": "2-3 sentence professional summary",
+  "linkedin_url": "https://linkedin.com/in/username",
+  "github_url": "https://github.com/username",
+  "portfolio_url": "personal site URL",
+  "project_urls": ["https://example.com/project1"]
 }
-Use null for any missing fields. No markdown, just the JSON object."#;
+Use null for missing string fields, empty array [] for project_urls. Always full https:// URLs (prepend if missing). portfolio_url is personal site only (not LinkedIn/GitHub). project_urls = deployed projects / live demos / repos mentioned in the body, excluding the ones already captured. No markdown, just the JSON object."#;
 
         let response = self.call_claude(api_key, system_prompt, resume_text).await?;
         let clean = crate::services::groq::strip_markdown(&response);

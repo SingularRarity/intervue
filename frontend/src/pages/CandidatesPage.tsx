@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Trash2, Loader2, X, User, Mail, Phone, Briefcase, Mic, Upload, Sparkles } from 'lucide-react'
+import { Plus, Trash2, Loader2, X, User, Mail, Phone, Briefcase, Mic, Upload, Sparkles, Github, Linkedin, Globe, Link as LinkIcon, Send } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { interviewApi } from '@/lib/api'
 import toast from 'react-hot-toast'
@@ -18,9 +18,14 @@ export default function CandidatesPage() {
     experience_years: '',
     current_role: '',
     notes: '',
+    linkedin_url: '',
+    github_url: '',
+    portfolio_url: '',
+    project_urls: [] as string[],
   })
   const [skillInput, setSkillInput] = useState('')
   const [resumeParsing, setResumeParsing] = useState(false)
+  const [sendingInvite, setSendingInvite] = useState(false)
   const resumeInputRef = useRef<HTMLInputElement>(null)
 
   const queryClient = useQueryClient()
@@ -37,11 +42,19 @@ export default function CandidatesPage() {
 
   const createMutation = useMutation({
     mutationFn: (data: any) => interviewApi.createCandidate(data),
-    onSuccess: () => {
+    onSuccess: async (res) => {
+      const newCandidate = res.data
       queryClient.invalidateQueries({ queryKey: ['candidates'] })
       setShowModal(false)
       resetForm()
       toast.success('Candidate added successfully')
+
+      // Fire-and-forget GitHub profile fetch + scoring (non-blocking, ~1-3s)
+      if (newCandidate?.github_url && newCandidate?.id) {
+        interviewApi.refreshGithub(newCandidate.id)
+          .then(() => queryClient.invalidateQueries({ queryKey: ['candidates'] }))
+          .catch(() => {/* silent — GitHub is best-effort */})
+      }
     },
     onError: (err: any) => toast.error(err.response?.data?.error || 'Failed to add candidate'),
   })
@@ -70,6 +83,10 @@ export default function CandidatesPage() {
         experience_years: p.experience_years != null ? String(p.experience_years) : f.experience_years,
         skills: p.skills?.length ? p.skills : f.skills,
         resume_text: p.summary || f.resume_text,
+        linkedin_url: p.linkedin_url || f.linkedin_url,
+        github_url: p.github_url || f.github_url,
+        portfolio_url: p.portfolio_url || f.portfolio_url,
+        project_urls: Array.isArray(p.project_urls) && p.project_urls.length ? p.project_urls : f.project_urls,
       }))
       toast.success('Resume parsed — form auto-filled')
     },
@@ -89,15 +106,23 @@ export default function CandidatesPage() {
     setForm({
       name: '', email: '', phone: '', resume_text: '',
       skills: [], experience_years: '', current_role: '', notes: '',
+      linkedin_url: '', github_url: '', portfolio_url: '', project_urls: [],
     })
     setSkillInput('')
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    // Drop empty strings — backend Option<String> wants None, not Some("")
+    const blankToNull = (v: string) => (v && v.trim()) ? v.trim() : null
     createMutation.mutate({
       ...form,
+      current_position: form.current_role, // map UI field → API field
       experience_years: form.experience_years ? parseFloat(form.experience_years) : null,
+      linkedin_url: blankToNull(form.linkedin_url),
+      github_url: blankToNull(form.github_url),
+      portfolio_url: blankToNull(form.portfolio_url),
+      project_urls: form.project_urls,
     })
   }
 
@@ -189,6 +214,38 @@ export default function CandidatesPage() {
                 </span>
               )}
             </div>
+
+            {/* Social / profile links */}
+            {(candidate.linkedin_url || candidate.github_url || candidate.portfolio_url || (candidate.project_urls && candidate.project_urls.length > 0)) && (
+              <div className="flex items-center gap-3 mb-4 text-dark-400">
+                {candidate.linkedin_url && (
+                  <a href={candidate.linkedin_url} target="_blank" rel="noreferrer" title="LinkedIn" className="hover:text-primary-500">
+                    <Linkedin className="w-4 h-4" />
+                  </a>
+                )}
+                {candidate.github_url && (
+                  <a href={candidate.github_url} target="_blank" rel="noreferrer" title="GitHub" className="hover:text-primary-500">
+                    <Github className="w-4 h-4" />
+                  </a>
+                )}
+                {candidate.portfolio_url && (
+                  <a href={candidate.portfolio_url} target="_blank" rel="noreferrer" title="Portfolio" className="hover:text-primary-500">
+                    <Globe className="w-4 h-4" />
+                  </a>
+                )}
+                {candidate.project_urls && candidate.project_urls.length > 0 && (
+                  <span title={candidate.project_urls.join('\n')} className="flex items-center gap-1 text-xs">
+                    <LinkIcon className="w-3.5 h-3.5" />
+                    {candidate.project_urls.length} project{candidate.project_urls.length !== 1 ? 's' : ''}
+                  </span>
+                )}
+                {candidate.github_profile?.score != null && (
+                  <span className="ml-auto px-2 py-0.5 rounded-full bg-primary-500/10 text-primary-500 text-[11px] font-medium" title="GitHub ranking">
+                    GitHub: {candidate.github_profile.score}/100
+                  </span>
+                )}
+              </div>
+            )}
 
             <button
               onClick={() => { setSelectedCandidate(candidate); setShowSessionModal(true); }}
@@ -332,6 +389,56 @@ export default function CandidatesPage() {
                 </div>
               </div>
 
+              {/* Professional profile links — autofilled by resume parser */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-dark-300 mb-2">LinkedIn</label>
+                  <input
+                    type="url"
+                    value={form.linkedin_url}
+                    onChange={(e) => setForm({ ...form, linkedin_url: e.target.value })}
+                    className="input-field"
+                    placeholder="https://linkedin.com/in/username"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-dark-300 mb-2">GitHub</label>
+                  <input
+                    type="url"
+                    value={form.github_url}
+                    onChange={(e) => setForm({ ...form, github_url: e.target.value })}
+                    className="input-field"
+                    placeholder="https://github.com/username"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-dark-300 mb-2">Portfolio / Personal Site</label>
+                <input
+                  type="url"
+                  value={form.portfolio_url}
+                  onChange={(e) => setForm({ ...form, portfolio_url: e.target.value })}
+                  className="input-field"
+                  placeholder="https://yourname.dev"
+                />
+              </div>
+              {form.project_urls.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-dark-300 mb-2">
+                    Projects mentioned in resume ({form.project_urls.length})
+                  </label>
+                  <div className="space-y-1">
+                    {form.project_urls.map((url, i) => (
+                      <div key={i} className="text-[12px] text-dark-400 truncate">
+                        <a href={url} target="_blank" rel="noreferrer" className="hover:text-primary-500">
+                          {url}
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-dark-300 mb-2">Resume Text</label>
                 <textarea
@@ -402,12 +509,54 @@ export default function CandidatesPage() {
                     candidate_id: selectedCandidate.id,
                   })
                 }}
-                disabled={sessionMutation.isPending}
+                disabled={sessionMutation.isPending || sendingInvite}
                 className="w-full btn-primary flex items-center justify-center gap-2"
               >
                 {sessionMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mic className="w-4 h-4" />}
-                Start Interview
+                Conduct Interview Now
               </button>
+
+              <button
+                onClick={async () => {
+                  const select = document.getElementById('template-select') as HTMLSelectElement
+                  if (!select.value) {
+                    toast.error('Please select a template')
+                    return
+                  }
+                  try {
+                    setSendingInvite(true)
+                    // 1. Create the session
+                    const sessionRes = await interviewApi.createSession({
+                      template_id: select.value,
+                      candidate_id: selectedCandidate.id,
+                    })
+                    const sessionId = sessionRes.data.id
+                    // 2. Draft the email (server creates token, generates LLM closing line)
+                    const draftRes = await interviewApi.draftInviteEmail(sessionId, {
+                      frontend_url: window.location.origin,
+                    })
+                    const { to, subject, body } = draftRes.data
+                    // 3. Pop the user's default mail client (Outlook, Gmail, Apple Mail, etc.)
+                    const mailto = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+                    window.location.href = mailto
+                    setShowSessionModal(false)
+                    setSelectedCandidate(null)
+                    toast.success('Email drafted — review and send from your inbox')
+                  } catch (err: any) {
+                    toast.error(err.response?.data?.error || 'Failed to draft invite')
+                  } finally {
+                    setSendingInvite(false)
+                  }
+                }}
+                disabled={sessionMutation.isPending || sendingInvite}
+                className="w-full btn-secondary flex items-center justify-center gap-2"
+              >
+                {sendingInvite ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                Email Invite to Candidate
+              </button>
+              <p className="text-[11px] text-dark-400 text-center">
+                Opens your mail client with a friendly pre-filled message. Candidate joins via secure link — no account needed.
+              </p>
             </div>
           </div>
         </div>

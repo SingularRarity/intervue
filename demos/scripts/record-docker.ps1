@@ -98,12 +98,11 @@ if ($Demo -eq "free") {
 
 if ($LASTEXITCODE -ne 0) { throw "Playwright recording failed" }
 
-# Collect final files
+# Collect final files (runs inside Docker so ffmpeg is available)
 Write-Host ""
-Write-Host "Collecting final videos..." -ForegroundColor Yellow
-Set-Location $DemosDir
-node scripts/postprocess.mjs $Demo
-Set-Location $Root
+Write-Host "Muxing audio + assembling final videos (ffmpeg)..." -ForegroundColor Yellow
+docker compose -f docker-compose.demo.yml run --rm demo-recorder node scripts/postprocess.mjs $Demo
+if ($LASTEXITCODE -ne 0) { Write-Host "  postprocess returned non-zero — some demos may have been skipped" -ForegroundColor Yellow }
 
 Write-Host ""
 Write-Host "=== Done ===" -ForegroundColor Green
