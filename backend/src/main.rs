@@ -147,6 +147,12 @@ async fn main() -> anyhow::Result<()> {
             post(routes::team::accept_invite)
                 .route_layer(middleware::from_fn(security::auth_rate_limit)),
         )
+        .route(
+            "/api/v1/auth/refresh",
+            post(routes::auth_tokens::refresh)
+                .route_layer(middleware::from_fn(security::auth_rate_limit)),
+        )
+        .route("/api/v1/auth/logout", post(routes::auth_tokens::logout))
 
         // ---- Protected: tenant profile ----
         .route("/api/v1/tenants/me", get(routes::tenant::get_current_tenant))

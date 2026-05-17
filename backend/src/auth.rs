@@ -18,12 +18,49 @@ use crate::{
 // Token helpers — legacy (v1) and extended (v2) tenant tokens + god admin
 // ---------------------------------------------------------------------------
 
+/// Access-token lifetime. Short, so a stolen token has limited value.
+/// 2h comfortably covers the longest interview (60 min) plus setup.
+pub const ACCESS_TOKEN_TTL_HOURS: i64 = 2;
+/// Refresh-token lifetime.
+pub const REFRESH_TOKEN_TTL_DAYS: i64 = 30;
+
 pub fn create_token(claims: &AuthClaims, secret: &str) -> anyhow::Result<String> {
     Ok(encode(
         &Header::default(),
         claims,
         &EncodingKey::from_secret(secret.as_bytes()),
     )?)
+}
+
+/// Build a fresh short-lived access token for a tenant.
+pub fn issue_access_token(tenant_id: Uuid, email: &str, secret: &str) -> anyhow::Result<String> {
+    let now = chrono::Utc::now();
+    let claims = AuthClaims {
+        sub: tenant_id,
+        email: email.to_string(),
+        exp: (now + chrono::Duration::hours(ACCESS_TOKEN_TTL_HOURS)).timestamp() as usize,
+        iat: now.timestamp() as usize,
+    };
+    create_token(&claims, secret)
+}
+
+/// Generate a refresh token. Returns (plaintext, sha256_hex_hash).
+/// Plaintext goes to the client once; only the hash is stored.
+pub fn generate_refresh_token() -> (String, String) {
+    use rand::RngCore;
+    let mut bytes = [0u8; 32];
+    rand::thread_rng().fill_bytes(&mut bytes);
+    let plaintext = bytes.iter().map(|b| format!("{b:02x}")).collect::<String>();
+    let hash = hash_refresh_token(&plaintext);
+    (plaintext, hash)
+}
+
+/// SHA-256 hex of a refresh token — used for storage + lookup.
+pub fn hash_refresh_token(plaintext: &str) -> String {
+    use sha2::{Digest, Sha256};
+    let mut hasher = Sha256::new();
+    hasher.update(plaintext.as_bytes());
+    hasher.finalize().iter().map(|b| format!("{b:02x}")).collect()
 }
 
 pub fn verify_token(token: &str, secret: &str) -> anyhow::Result<AuthClaims> {
@@ -151,6 +188,8 @@ static PUBLIC_PATHS: &[&str] = &[
     "/api/v1/admin/auth/login",
     "/api/v1/billing/plans",
     "/api/v1/team/accept-invite",
+    "/api/v1/auth/refresh",
+    "/api/v1/auth/logout",
 ];
 
 pub async fn auth_middleware(

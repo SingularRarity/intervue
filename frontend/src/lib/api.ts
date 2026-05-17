@@ -16,11 +16,56 @@ api.interceptors.request.use((config) => {
   return config
 })
 
+// ── Token refresh on 401 ─────────────────────────────────────────────────────
+// Access tokens are short-lived (~2h). On a 401 we try the refresh token once,
+// update the store, and retry the original request. Concurrent 401s share a
+// single in-flight refresh so we don't fire N refreshes at once.
+let refreshInFlight: Promise<string | null> | null = null
+
+async function runRefresh(): Promise<string | null> {
+  const { refreshToken, setTokens, logout } = useAuthStore.getState()
+  if (!refreshToken) {
+    logout()
+    return null
+  }
+  try {
+    // Bare axios (not `api`) so this call doesn't recurse through the interceptor.
+    const res = await axios.post(
+      `${import.meta.env.VITE_API_URL || '/api/v1'}/auth/refresh`,
+      { refresh_token: refreshToken },
+      { headers: { 'Content-Type': 'application/json' } }
+    )
+    const newToken: string = res.data.token
+    const newRefresh: string = res.data.refresh_token
+    setTokens(newToken, newRefresh)
+    return newToken
+  } catch {
+    logout()
+    return null
+  }
+}
+
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      useAuthStore.getState().logout()
+  async (error) => {
+    const original = error.config
+    const status = error.response?.status
+
+    // Don't try to refresh the refresh call itself, or retry endlessly.
+    const isAuthCall = original?.url?.includes('/auth/refresh') || original?.url?.includes('/tenants/login')
+
+    if (status === 401 && original && !original._retried && !isAuthCall) {
+      original._retried = true
+      refreshInFlight = refreshInFlight ?? runRefresh()
+      const newToken = await refreshInFlight
+      refreshInFlight = null
+
+      if (newToken) {
+        original.headers = original.headers ?? {}
+        original.headers.Authorization = `Bearer ${newToken}`
+        return api(original)
+      }
+      // Refresh failed — bounce to login
       window.location.href = '/login'
     }
     return Promise.reject(error)
@@ -33,6 +78,7 @@ export default api
 export const tenantApi = {
   register: (data: unknown) => api.post('/tenants', data),
   login: (data: unknown) => api.post('/tenants/login', data),
+  logout: (refresh_token: string) => api.post('/auth/logout', { refresh_token }),
   me: () => api.get('/tenants/me'),
   updateKeys: (data: unknown) => api.put('/tenants/keys', data),
 }

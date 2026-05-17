@@ -11,7 +11,7 @@ use validator::Validate;
 
 use crate::{
     AppState,
-    auth::{create_token, hash_password, verify_password},
+    auth::{hash_password, verify_password},
     models::*,
 };
 
@@ -65,18 +65,22 @@ pub async fn create_tenant(
     .await
     .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;
 
-    let claims = AuthClaims {
-        sub: tenant.id,
-        email: tenant.email.clone(),
-        exp: (Utc::now() + chrono::Duration::days(30)).timestamp() as usize,
-        iat: Utc::now().timestamp() as usize,
-    };
+    let token = crate::auth::issue_access_token(tenant.id, &tenant.email, &state.config.jwt_secret)
+        .map_err(|e| {
+            tracing::error!("register token mint failed: {e}");
+            (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": "Registration failed" })))
+        })?;
 
-    let token = create_token(&claims, &state.config.jwt_secret)
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;
+    let refresh_token = crate::routes::auth_tokens::issue_refresh_token(&state, tenant.id)
+        .await
+        .map_err(|e| {
+            tracing::error!("register refresh-token issue failed: {e}");
+            (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": "Registration failed" })))
+        })?;
 
     Ok(Json(json!({
         "token": token,
+        "refresh_token": refresh_token,
         "tenant": TenantResponse::from(tenant),
     })))
 }
@@ -99,18 +103,22 @@ pub async fn login_tenant(
         return Err((StatusCode::UNAUTHORIZED, Json(json!({ "error": "Invalid credentials" }))));
     }
 
-    let claims = AuthClaims {
-        sub: tenant.id,
-        email: tenant.email.clone(),
-        exp: (Utc::now() + chrono::Duration::days(30)).timestamp() as usize,
-        iat: Utc::now().timestamp() as usize,
-    };
+    let token = crate::auth::issue_access_token(tenant.id, &tenant.email, &state.config.jwt_secret)
+        .map_err(|e| {
+            tracing::error!("login token mint failed: {e}");
+            (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": "Login failed" })))
+        })?;
 
-    let token = create_token(&claims, &state.config.jwt_secret)
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;
+    let refresh_token = crate::routes::auth_tokens::issue_refresh_token(&state, tenant.id)
+        .await
+        .map_err(|e| {
+            tracing::error!("login refresh-token issue failed: {e}");
+            (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": "Login failed" })))
+        })?;
 
     Ok(Json(json!({
         "token": token,
+        "refresh_token": refresh_token,
         "tenant": TenantResponse::from(tenant),
     })))
 }

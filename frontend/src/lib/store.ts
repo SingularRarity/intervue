@@ -17,37 +17,48 @@ interface Tenant {
 
 interface AuthState {
   token: string | null
+  refreshToken: string | null
   tenant: Tenant | null
   role: TenantRole
   plan: PlanTier
   userId: string | null
   isGodAdmin: boolean
-  setAuth: (token: string, tenant: Tenant, role?: TenantRole, plan?: PlanTier, userId?: string | null) => void
+  setAuth: (token: string, tenant: Tenant, role?: TenantRole, plan?: PlanTier, userId?: string | null, refreshToken?: string | null) => void
   setGodAdmin: (token: string, adminId: string, email: string) => void
+  setTokens: (token: string, refreshToken: string) => void
   logout: () => void
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       token: null,
+      refreshToken: null,
       tenant: null,
       role: 'tenant_admin',
       plan: 'free',
       userId: null,
       isGodAdmin: false,
-      setAuth: (token, tenant, role = 'tenant_admin', plan = 'free', userId = null) =>
-        set({ token, tenant, role, plan, userId, isGodAdmin: false }),
+      setAuth: (token, tenant, role = 'tenant_admin', plan = 'free', userId = null, refreshToken = null) =>
+        set({
+          token,
+          // Preserve an existing refresh token if the caller doesn't supply one
+          // (e.g. the second setAuth in LoginPage that only updates the plan).
+          refreshToken: refreshToken ?? get().refreshToken,
+          tenant, role, plan, userId, isGodAdmin: false,
+        }),
       setGodAdmin: (token, adminId, email) =>
         set({
           token,
+          refreshToken: null,
           tenant: { id: '', company_name: 'Platform Admin', email, is_active: true, has_claude_key: false, has_sarvam_key: false },
           role: 'tenant_admin',
           plan: 'enterprise',
           userId: adminId,
           isGodAdmin: true,
         }),
-      logout: () => set({ token: null, tenant: null, role: 'tenant_admin', plan: 'free', userId: null, isGodAdmin: false }),
+      setTokens: (token, refreshToken) => set({ token, refreshToken }),
+      logout: () => set({ token: null, refreshToken: null, tenant: null, role: 'tenant_admin', plan: 'free', userId: null, isGodAdmin: false }),
     }),
     {
       name: 'auth-storage',

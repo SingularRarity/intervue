@@ -15,6 +15,7 @@ import {
   HelpCircle,
 } from 'lucide-react'
 import { useAuthStore } from '@/lib/store'
+import { tenantApi } from '@/lib/api'
 import { PLAN_LABELS } from '@/lib/permissions'
 import AppTour, { TOUR_DONE_KEY } from './AppTour'
 
@@ -27,7 +28,12 @@ export default function Layout() {
     () => !!tourDoneKey && !localStorage.getItem(tourDoneKey)
   )
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Revoke the refresh token server-side before clearing local state
+    const rt = useAuthStore.getState().refreshToken
+    if (rt) {
+      try { await tenantApi.logout(rt) } catch { /* best-effort */ }
+    }
     logout()
     navigate('/')
   }

@@ -11,6 +11,7 @@ export default function OAuthCallbackPage() {
 
   useEffect(() => {
     const token = searchParams.get('token')
+    const refreshToken = searchParams.get('refresh_token')
     const error = searchParams.get('error')
 
     if (error) {
@@ -25,12 +26,12 @@ export default function OAuthCallbackPage() {
 
     // Store token first so the API call is authenticated, then fetch tenant
     const tempStore = useAuthStore.getState()
-    tempStore.setAuth(token, { id: '', company_name: '', email: '', is_active: true, has_claude_key: false, has_sarvam_key: false })
+    tempStore.setAuth(token, { id: '', company_name: '', email: '', is_active: true, has_claude_key: false, has_sarvam_key: false }, 'tenant_admin', 'free', null, refreshToken)
 
     tenantApi
       .me()
       .then((res) => {
-        setAuth(token, res.data)
+        setAuth(token, res.data, 'tenant_admin', 'free', null, refreshToken)
         navigate('/dashboard')
       })
       .catch(() => {

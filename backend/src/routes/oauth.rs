@@ -10,8 +10,7 @@ use std::sync::Arc;
 use uuid::Uuid;
 
 use crate::{
-    auth::create_token,
-    models::{AuthClaims, Tenant},
+    models::Tenant,
     security::{consume_oauth_state, issue_oauth_state},
     AppState,
 };
@@ -155,14 +154,7 @@ pub async fn google_callback(
         }
     };
 
-    let claims = AuthClaims {
-        sub: tenant.id,
-        email: tenant.email.clone(),
-        exp: (Utc::now() + chrono::Duration::days(30)).timestamp() as usize,
-        iat: Utc::now().timestamp() as usize,
-    };
-
-    let jwt = match create_token(&claims, &state.config.jwt_secret) {
+    let jwt = match crate::auth::issue_access_token(tenant.id, &tenant.email, &state.config.jwt_secret) {
         Ok(t) => t,
         Err(e) => {
             tracing::error!("JWT creation failed: {e}");
@@ -174,10 +166,23 @@ pub async fn google_callback(
         }
     };
 
+    let refresh = match crate::routes::auth_tokens::issue_refresh_token(&state, tenant.id).await {
+        Ok(r) => r,
+        Err(e) => {
+            tracing::error!("OAuth refresh-token issue failed: {e}");
+            return Redirect::to(&format!(
+                "{}/oauth/callback?error=Auth+token+failed",
+                frontend_url
+            ))
+            .into_response();
+        }
+    };
+
     Redirect::to(&format!(
-        "{}/oauth/callback?token={}",
+        "{}/oauth/callback?token={}&refresh_token={}",
         frontend_url,
-        urlencoding::encode(&jwt)
+        urlencoding::encode(&jwt),
+        urlencoding::encode(&refresh),
     ))
     .into_response()
 }

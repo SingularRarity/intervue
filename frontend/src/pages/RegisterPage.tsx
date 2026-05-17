@@ -24,7 +24,7 @@ export default function RegisterPage() {
     setLoading(true)
     try {
       const res = await tenantApi.register(form)
-      setAuth(res.data.token, res.data.tenant)
+      setAuth(res.data.token, res.data.tenant, 'tenant_admin', 'free', null, res.data.refresh_token)
       toast.success('Account created successfully!')
       navigate('/onboarding')
     } catch (err: any) {

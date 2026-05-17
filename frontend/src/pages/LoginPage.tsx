@@ -18,12 +18,13 @@ export default function LoginPage() {
     setLoading(true)
     try {
       const res = await tenantApi.login({ email, password })
-      // Set auth first so the next API call carries the bearer token
-      setAuth(res.data.token, res.data.tenant)
+      // Set auth first so the next API call carries the bearer token (+ refresh token)
+      setAuth(res.data.token, res.data.tenant, 'tenant_admin', 'free', null, res.data.refresh_token)
       // Fetch the actual plan tier — store defaults to 'free'
       try {
         const planRes = await billingApi.getPlan()
         const tier = planRes.data?.plan_tier ?? planRes.data?.tier ?? 'free'
+        // refreshToken omitted — setAuth preserves the existing one
         setAuth(res.data.token, res.data.tenant, 'tenant_admin', tier)
       } catch {
         // Non-fatal: leave plan as 'free'

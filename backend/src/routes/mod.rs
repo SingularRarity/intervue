@@ -1,4 +1,5 @@
 pub mod tenant;
+pub mod auth_tokens;
 pub mod interview;
 pub mod candidates_extra;
 pub mod analytics;
