@@ -24,11 +24,12 @@ async fn resolve_and_parse(
     .await
     .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;
 
-    let (use_groq, api_key) = if let Some(k) = tenant.groq_api_key
+    // tenant keys are encrypted at rest (C3) — decrypt before use
+    let (use_groq, api_key) = if let Some(k) = crate::crypto::decrypt_opt(&tenant.groq_api_key)
         .or_else(|| state.config.platform_groq_key.clone())
     {
         (true, k)
-    } else if let Some(k) = tenant.claude_api_key
+    } else if let Some(k) = crate::crypto::decrypt_opt(&tenant.claude_api_key)
         .or_else(|| state.config.platform_claude_key.clone())
     {
         (false, k)
@@ -85,7 +86,8 @@ pub async fn parse_resume_file(
         extract_text_from_pdf(&file_bytes)
             .map_err(|e| (StatusCode::UNPROCESSABLE_ENTITY, Json(json!({ "error": format!("Could not read PDF: {}", e) }))))?
     } else {
-        String::from_utf8(file_bytes)
+        // clone — file_bytes is still needed below for the S3 upload
+        String::from_utf8(file_bytes.clone())
             .map_err(|_| (StatusCode::BAD_REQUEST, Json(json!({ "error": "File is not valid UTF-8 text" }))))?
     };
 
@@ -93,6 +95,26 @@ pub async fn parse_resume_file(
         return Err((StatusCode::BAD_REQUEST, Json(json!({ "error": "Could not extract any text from the file" }))));
     }
 
-    let result = resolve_and_parse(&state, claims.sub, &resume_text).await?;
+    // Persist the original file to object storage (best-effort — C10).
+    // Key: resumes/<tenant>/<uuid>.<ext>
+    let resume_url = {
+        let ext = filename.rsplit('.').next().unwrap_or("bin");
+        let key = format!("resumes/{}/{}.{}", claims.sub, uuid::Uuid::new_v4(), ext);
+        let content_type = match ext {
+            "pdf" => "application/pdf",
+            "docx" | "doc" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "txt" => "text/plain",
+            _ => "application/octet-stream",
+        };
+        state.storage.upload(&key, content_type, &file_bytes).await
+    };
+
+    let mut result = resolve_and_parse(&state, claims.sub, &resume_text).await?;
+    // Surface the storage key so the frontend can attach it to the candidate.
+    if let Some(url) = resume_url {
+        if let Some(obj) = result.as_object_mut() {
+            obj.insert("resume_url".to_string(), json!(url));
+        }
+    }
     Ok(Json(result))
 }

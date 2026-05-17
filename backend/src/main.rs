@@ -13,6 +13,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 mod auth;
 mod config;
+mod crypto;
 mod db;
 mod models;
 mod routes;
@@ -23,7 +24,7 @@ use auth::{auth_middleware, permission_middleware, RoutePerm};
 use config::Config;
 use db::Database;
 use models::PlanTier;
-use services::{ClaudeService, GithubService, GroqService, InterviewEngine, PermissionService, SarvamService};
+use services::{ClaudeService, GithubService, GroqService, InterviewEngine, PermissionService, SarvamService, StorageService};
 
 #[derive(Clone)]
 pub struct AppState {
@@ -33,6 +34,7 @@ pub struct AppState {
     pub claude: ClaudeService, // kept for tenants with Claude keys
     pub groq: GroqService,     // default LLM — free tier at console.groq.com
     pub github: GithubService, // GitHub profile + ranking
+    pub storage: StorageService, // S3 / MinIO object storage
     pub interview_engine: InterviewEngine,
     pub permissions: Arc<PermissionService>,
 }
@@ -58,6 +60,7 @@ async fn main() -> anyhow::Result<()> {
         .init();
 
     dotenvy::dotenv().ok();
+    crypto::init_from_env();
     let config = Config::from_env()?;
 
     let db = Database::new(&config.database_url).await?;
@@ -67,6 +70,7 @@ async fn main() -> anyhow::Result<()> {
     let claude = ClaudeService::new();
     let groq = GroqService::new();
     let github = GithubService::new();
+    let storage = StorageService::from_config(&config);
     let platform_llm_key = config.platform_groq_key.clone()
         .or_else(|| config.platform_claude_key.clone());
     let interview_engine = InterviewEngine::new(
@@ -85,6 +89,7 @@ async fn main() -> anyhow::Result<()> {
         claude,
         groq,
         github,
+        storage,
         interview_engine,
         permissions,
     });

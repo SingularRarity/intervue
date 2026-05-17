@@ -217,3 +217,44 @@ struct GhRepo {
     fork: bool,
     pushed_at: Option<String>,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn extract_username_from_url_forms() {
+        assert_eq!(GithubService::extract_username("https://github.com/octocat"), Some("octocat".into()));
+        assert_eq!(GithubService::extract_username("http://github.com/octocat/"), Some("octocat".into()));
+        assert_eq!(GithubService::extract_username("github.com/octocat"), Some("octocat".into()));
+        assert_eq!(GithubService::extract_username("https://www.github.com/octocat"), Some("octocat".into()));
+        assert_eq!(GithubService::extract_username("octocat"), Some("octocat".into()));
+        // URL with extra path segments — take the first
+        assert_eq!(GithubService::extract_username("https://github.com/octocat/some-repo"), Some("octocat".into()));
+    }
+
+    #[test]
+    fn extract_username_rejects_garbage() {
+        assert_eq!(GithubService::extract_username(""), None);
+        assert_eq!(GithubService::extract_username("   "), None);
+        // invalid chars
+        assert_eq!(GithubService::extract_username("bad name!"), None);
+        // too long (>39 chars)
+        assert_eq!(GithubService::extract_username(&"a".repeat(40)), None);
+    }
+
+    #[test]
+    fn scale_is_monotonic_and_bounded() {
+        let pts = &[(0.0, 0u32), (5.0, 10), (50.0, 25), (500.0, 40)];
+        assert_eq!(scale(0.0, pts), 0);
+        assert_eq!(scale(-10.0, pts), 0, "below first point clamps to its output");
+        assert_eq!(scale(5.0, pts), 10);
+        assert_eq!(scale(10000.0, pts), 40, "above last point clamps to its output");
+        // monotonic: more stars => not-lower score
+        assert!(scale(50.0, pts) >= scale(5.0, pts));
+        assert!(scale(500.0, pts) >= scale(50.0, pts));
+        // interpolation lands between bracketing points
+        let mid = scale(27.5, pts);
+        assert!(mid > 10 && mid < 25, "interpolated value {mid} should be between 10 and 25");
+    }
+}

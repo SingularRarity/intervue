@@ -29,13 +29,14 @@ impl InterviewEngine {
     }
 
     fn resolve_claude_key(&self, tenant_key: Option<String>) -> anyhow::Result<String> {
-        tenant_key
+        // tenant_key is encrypted at rest (C3) — decrypt before use
+        crate::crypto::decrypt_opt(&tenant_key)
             .or_else(|| self.platform_claude_key.clone())
             .ok_or_else(|| anyhow::anyhow!("No AI API key configured. Please add your API key in Settings or contact support."))
     }
 
     fn resolve_sarvam_key(&self, tenant_key: Option<String>) -> anyhow::Result<String> {
-        tenant_key
+        crate::crypto::decrypt_opt(&tenant_key)
             .or_else(|| self.platform_sarvam_key.clone())
             .ok_or_else(|| anyhow::anyhow!("No speech API key configured. Please add your API key in Settings or contact support."))
     }

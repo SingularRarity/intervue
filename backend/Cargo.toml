@@ -26,6 +26,8 @@ argon2 = "0.5"
 rand = "0.8"
 base64 = "0.21"
 sha2 = "0.10"
+aes-gcm = "0.10"
+rust-s3 = { version = "0.34", default-features = false, features = ["tokio-rustls-tls"] }
 futures = "0.3"
 tokio-util = { version = "0.7", features = ["codec"] }
 bytes = "1.5"

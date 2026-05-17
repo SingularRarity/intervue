@@ -173,10 +173,10 @@ pub async fn create_candidate(
     let candidate = sqlx::query_as::<_, Candidate>(
         r#"
         INSERT INTO candidates
-        (id, tenant_id, name, email, phone, resume_text, skills, experience_years, current_position, notes,
+        (id, tenant_id, name, email, phone, resume_text, resume_url, skills, experience_years, current_position, notes,
          linkedin_url, github_url, portfolio_url, project_urls,
          created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
         RETURNING *
         "#
     )
@@ -186,6 +186,7 @@ pub async fn create_candidate(
     .bind(&req.email)
     .bind(&req.phone)
     .bind(&req.resume_text)
+    .bind(&req.resume_url)
     .bind(&req.skills)
     .bind(req.experience_years)
     .bind(&req.current_position)
@@ -455,11 +456,12 @@ pub async fn parse_jd(
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;
 
     // Key resolution: tenant's Groq key → platform Groq key → tenant's Claude key → platform Claude key
-    let (use_groq, api_key) = if let Some(k) = tenant.groq_api_key
+    // Tenant keys are encrypted at rest (C3) — decrypt before use.
+    let (use_groq, api_key) = if let Some(k) = crate::crypto::decrypt_opt(&tenant.groq_api_key)
         .or_else(|| state.config.platform_groq_key.clone())
     {
         (true, k)
-    } else if let Some(k) = tenant.claude_api_key
+    } else if let Some(k) = crate::crypto::decrypt_opt(&tenant.claude_api_key)
         .or_else(|| state.config.platform_claude_key.clone())
     {
         (false, k)

@@ -141,17 +141,25 @@ pub async fn update_api_keys(
     claims: axum::Extension<AuthClaims>,
     Json(req): Json<UpdateApiKeysRequest>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
+    // Encrypt third-party API keys before they touch the DB (C3)
+    let claude_enc = crate::crypto::encrypt_opt(&req.claude_api_key);
+    let sarvam_enc = crate::crypto::encrypt_opt(&req.sarvam_api_key);
+    let groq_enc = crate::crypto::encrypt_opt(&req.groq_api_key);
+
     sqlx::query(
         "UPDATE tenants SET claude_api_key = $1, sarvam_api_key = $2, groq_api_key = $3, updated_at = $4 WHERE id = $5"
     )
-    .bind(&req.claude_api_key)
-    .bind(&req.sarvam_api_key)
-    .bind(&req.groq_api_key)
+    .bind(&claude_enc)
+    .bind(&sarvam_enc)
+    .bind(&groq_enc)
     .bind(Utc::now())
     .bind(claims.sub)
     .execute(state.db.pool())
     .await
-    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;
+    .map_err(|e| {
+        tracing::error!("update_api_keys db error: {e}");
+        (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": "Failed to update keys" })))
+    })?;
 
     Ok(Json(json!({ "message": "API keys updated successfully" })))
 }

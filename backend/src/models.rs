@@ -183,6 +183,8 @@ pub struct CreateCandidateRequest {
     pub experience_years: Option<f32>,
     pub current_position: Option<String>,
     pub notes: Option<String>,
+    // S3 key of the uploaded resume file (from parse-resume-file response)
+    pub resume_url: Option<String>,
     // Optional — passed through from resume parse output if present
     pub linkedin_url: Option<String>,
     pub github_url: Option<String>,

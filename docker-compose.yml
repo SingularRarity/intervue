@@ -24,6 +24,39 @@ services:
     volumes:
       - redis_data:/data
 
+  # S3-compatible object storage for local dev. Production points at real AWS S3
+  # via the same S3_* env vars (just change S3_ENDPOINT + credentials).
+  minio:
+    image: minio/minio:latest
+    container_name: ai-interview-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # One-shot: create the bucket on startup
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      until (mc alias set local http://minio:9000 minioadmin minioadmin) do echo waiting for minio; sleep 2; done;
+      mc mb --ignore-existing local/intervue-resumes;
+      mc anonymous set download local/intervue-resumes;
+      echo 'minio bucket ready';
+      "
+
   backend:
     build: ./backend
     container_name: ai-interview-backend
@@ -38,6 +71,14 @@ services:
       FRONTEND_URL: http://localhost:3001
       BACKEND_URL: http://localhost:8080
       CORS_ALLOWED_ORIGINS: http://localhost:3001,http://host.docker.internal:3001,http://localhost:5173
+      # 64 hex chars = 256-bit AES key. Override per environment; rotate via re-save of keys.
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef}
+      # Object storage — local MinIO; production sets these to real AWS S3 values.
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_BUCKET: ${S3_BUCKET:-intervue-resumes}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-minioadmin}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-minioadmin}
     ports:
       - "8080:8080"
     depends_on:
@@ -59,3 +100,4 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  minio_data:

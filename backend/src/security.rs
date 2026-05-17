@@ -81,6 +81,36 @@ fn take_token(key: &str, cfg: &RateLimitConfig) -> bool {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn rate_limiter_allows_burst_then_blocks() {
+        let cfg = RateLimitConfig { capacity: 5.0, refill_per_sec: 0.0 };
+        let key = "test-ip-burst";
+        // First `capacity` calls succeed
+        for i in 0..5 {
+            assert!(take_token(key, &cfg), "call {i} should be allowed");
+        }
+        // The next is blocked (bucket empty, no refill)
+        assert!(!take_token(key, &cfg), "6th call should be rate-limited");
+    }
+
+    #[test]
+    fn oauth_state_is_single_use() {
+        let token = "state-abc-123".to_string();
+        issue_oauth_state(token.clone());
+        assert!(consume_oauth_state(&token), "freshly issued state should validate");
+        assert!(!consume_oauth_state(&token), "state must not be reusable");
+    }
+
+    #[test]
+    fn oauth_state_rejects_unknown() {
+        assert!(!consume_oauth_state("never-issued-state"));
+    }
+}
+
 /// Middleware: rate-limit by peer IP on the auth endpoints.
 /// Applied as a `route_layer` on /api/v1/tenants/login, /api/v1/admin/auth/login,
 /// /api/v1/team/accept-invite. ConnectInfo<SocketAddr> requires

@@ -43,6 +43,12 @@ jobs:
           SQLX_OFFLINE: true
         run: cargo build --release
 
+      - name: Unit tests
+        working-directory: backend
+        env:
+          SQLX_OFFLINE: true
+        run: cargo test --release --bins
+
   frontend:
     name: Frontend — typecheck & build
     runs-on: ubuntu-latest

@@ -17,6 +17,12 @@ pub struct Config {
     pub platform_groq_key: Option<String>,
     pub llm_provider: String, // "groq" | "claude" — defaults to groq
     pub cors_allowed_origins: Vec<String>,
+    // Object storage (S3 / MinIO). All optional — if unset, file storage is disabled.
+    pub s3_endpoint: Option<String>,
+    pub s3_region: String,
+    pub s3_bucket: Option<String>,
+    pub s3_access_key: Option<String>,
+    pub s3_secret_key: Option<String>,
 }
 
 impl Config {
@@ -64,6 +70,11 @@ impl Config {
             platform_groq_key: std::env::var("PLATFORM_GROQ_KEY").ok(),
             llm_provider: std::env::var("LLM_PROVIDER").unwrap_or_else(|_| "groq".to_string()),
             cors_allowed_origins,
+            s3_endpoint: std::env::var("S3_ENDPOINT").ok().filter(|s| !s.is_empty()),
+            s3_region: std::env::var("S3_REGION").unwrap_or_else(|_| "us-east-1".to_string()),
+            s3_bucket: std::env::var("S3_BUCKET").ok().filter(|s| !s.is_empty()),
+            s3_access_key: std::env::var("S3_ACCESS_KEY").ok().filter(|s| !s.is_empty()),
+            s3_secret_key: std::env::var("S3_SECRET_KEY").ok().filter(|s| !s.is_empty()),
         })
     }
 }

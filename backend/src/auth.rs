@@ -361,3 +361,56 @@ pub fn verify_password(password: &str, hash: &str) -> anyhow::Result<bool> {
         .map_err(|e| anyhow::anyhow!("invalid hash: {}", e))?;
     Ok(argon2::PasswordVerifier::verify_password(&argon2, password.as_bytes(), &parsed).is_ok())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn password_hash_roundtrip() {
+        let hash = hash_password("Intervue@Demo1").unwrap();
+        assert!(verify_password("Intervue@Demo1", &hash).unwrap());
+        assert!(!verify_password("wrong-password", &hash).unwrap());
+    }
+
+    #[test]
+    fn password_hashes_are_salted() {
+        // Same password, two hashes — must differ (random salt)
+        let a = hash_password("samepass123").unwrap();
+        let b = hash_password("samepass123").unwrap();
+        assert_ne!(a, b);
+    }
+
+    #[test]
+    fn refresh_tokens_are_unique_and_hash_deterministically() {
+        let (plain1, hash1) = generate_refresh_token();
+        let (plain2, hash2) = generate_refresh_token();
+        assert_ne!(plain1, plain2, "each refresh token must be unique");
+        assert_ne!(hash1, hash2);
+        assert_eq!(plain1.len(), 64, "32 random bytes => 64 hex chars");
+        // Hashing is deterministic
+        assert_eq!(hash_refresh_token(&plain1), hash1);
+        assert_ne!(hash_refresh_token(&plain1), hash_refresh_token(&plain2));
+    }
+
+    #[test]
+    fn access_token_verifies_and_carries_tenant() {
+        let secret = "test-secret-key";
+        let tenant_id = Uuid::new_v4();
+        let token = issue_access_token(tenant_id, "hr@example.com", secret).unwrap();
+        let claims = verify_token(&token, secret).unwrap();
+        assert_eq!(claims.sub, tenant_id);
+        assert_eq!(claims.email, "hr@example.com");
+        // exp must be in the future, within the configured TTL
+        let now = chrono::Utc::now().timestamp() as usize;
+        assert!(claims.exp > now);
+        assert!(claims.exp <= now + (ACCESS_TOKEN_TTL_HOURS as usize + 1) * 3600);
+    }
+
+    #[test]
+    fn access_token_rejects_wrong_secret() {
+        let token = issue_access_token(Uuid::new_v4(), "x@y.com", "secret-a").unwrap();
+        assert!(verify_token(&token, "secret-b").is_err());
+        assert!(verify_token("not-a-jwt", "secret-a").is_err());
+    }
+}

@@ -22,6 +22,7 @@ export default function CandidatesPage() {
     github_url: '',
     portfolio_url: '',
     project_urls: [] as string[],
+    resume_url: '',
   })
   const [skillInput, setSkillInput] = useState('')
   const [resumeParsing, setResumeParsing] = useState(false)
@@ -87,6 +88,7 @@ export default function CandidatesPage() {
         github_url: p.github_url || f.github_url,
         portfolio_url: p.portfolio_url || f.portfolio_url,
         project_urls: Array.isArray(p.project_urls) && p.project_urls.length ? p.project_urls : f.project_urls,
+        resume_url: data.resume_url || f.resume_url,
       }))
       toast.success('Resume parsed — form auto-filled')
     },
@@ -107,6 +109,7 @@ export default function CandidatesPage() {
       name: '', email: '', phone: '', resume_text: '',
       skills: [], experience_years: '', current_role: '', notes: '',
       linkedin_url: '', github_url: '', portfolio_url: '', project_urls: [],
+      resume_url: '',
     })
     setSkillInput('')
   }
@@ -123,6 +126,7 @@ export default function CandidatesPage() {
       github_url: blankToNull(form.github_url),
       portfolio_url: blankToNull(form.portfolio_url),
       project_urls: form.project_urls,
+      resume_url: blankToNull(form.resume_url),
     })
   }
 
