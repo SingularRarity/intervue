@@ -56,5 +56,19 @@ locals {
     APP_ENV      = var.environment == "prod" ? "production" : "development"
     RUST_LOG     = var.environment == "prod" ? "ai_interview_platform=info,tower_http=warn" : "ai_interview_platform=debug,tower_http=debug"
     LLM_PROVIDER = "groq"
+    # CORS allowlist — REQUIRED in production (the backend blocks all CORS if unset
+    # when APP_ENV=production). Covers the CloudFront domain and, when configured,
+    # the custom domain.
+    CORS_ALLOWED_ORIGINS = join(",", compact([
+      "https://${aws_cloudfront_distribution.frontend.domain_name}",
+      var.domain_name != "" ? "https://${var.subdomain}.${var.domain_name}" : "",
+    ]))
   }
+}
+
+# 256-bit master key for field-level encryption of tenant API keys (C3).
+# Generated once and stored in TF state + SSM. Rotating it requires re-saving
+# every tenant's keys, so treat it as durable.
+resource "random_id" "encryption_key" {
+  byte_length = 32
 }

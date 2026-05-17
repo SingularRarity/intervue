@@ -85,3 +85,16 @@ resource "aws_ssm_parameter" "google_client_secret" {
   value       = var.google_client_secret != "" ? var.google_client_secret : "REPLACE_ME"
   tags        = { Name = "google_client_secret" }
 }
+
+resource "aws_ssm_parameter" "encryption_key" {
+  name        = "${local.ssm_prefix}/encryption_key"
+  description = "AES-256-GCM master key for tenant API key encryption at rest (C3)"
+  type        = "SecureString"
+  value       = random_id.encryption_key.hex
+  tags        = { Name = "encryption_key" }
+
+  # Never overwrite a live key — rotating it orphans every encrypted value.
+  lifecycle {
+    ignore_changes = [value]
+  }
+}

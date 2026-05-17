@@ -95,6 +95,10 @@ resource "aws_ecs_task_definition" "backend" {
         {
           name      = "GOOGLE_CLIENT_SECRET"
           valueFrom = aws_ssm_parameter.google_client_secret.arn
+        },
+        {
+          name      = "ENCRYPTION_KEY"
+          valueFrom = aws_ssm_parameter.encryption_key.arn
         }
       ]
 
