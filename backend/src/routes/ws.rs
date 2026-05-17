@@ -113,6 +113,29 @@ async fn handle_socket(
         return;
     }
 
+    // Replay conversation history so a reconnecting client (after a dropped socket,
+    // backend restart, or load-balancer rebalance) catches up. All interview state
+    // lives in Postgres — the engine is stateless — so resume is just a replay.
+    match sqlx::query_as::<_, (String, String)>(
+        "SELECT role, content FROM interview_messages WHERE session_id = $1 ORDER BY created_at ASC"
+    )
+    .bind(session_id)
+    .fetch_all(state.db.pool())
+    .await
+    {
+        Ok(history) if !history.is_empty() => {
+            let replay = serde_json::json!({
+                "type": "history",
+                "messages": history.iter().map(|(role, content)| {
+                    serde_json::json!({ "role": role, "content": content })
+                }).collect::<Vec<_>>(),
+            });
+            let _ = socket.send(axum::extract::ws::Message::Text(replay.to_string())).await;
+        }
+        Ok(_) => {} // fresh interview, nothing to replay
+        Err(e) => tracing::error!("ws: history replay query failed for {session_id}: {e}"),
+    }
+
     // Main WebSocket loop
     while let Some(Ok(msg)) = socket.next().await {
         match msg {

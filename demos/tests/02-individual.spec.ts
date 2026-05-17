@@ -140,7 +140,7 @@ test('Individual Plan — Arjun Mehta full-stack interview', async ({ page, cont
 
   const [interviewPage] = await Promise.all([
     context.waitForEvent('page', { timeout: 15000 }),
-    slowClick(page, 'div.fixed button:has-text("Start Interview")'),
+    slowClick(page, 'div.fixed button:has-text("Conduct Interview Now")'),
   ])
 
   await interviewPage.waitForLoadState('domcontentloaded')

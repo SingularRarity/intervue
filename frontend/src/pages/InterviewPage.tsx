@@ -26,6 +26,11 @@ export default function InterviewPage() {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const timerRef = useRef<ReturnType<typeof setInterval>>()
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  // Reconnect bookkeeping — interview state lives server-side, so a dropped
+  // socket just needs a fresh connection; the backend replays history on connect.
+  const intentionalCloseRef = useRef(false)
+  const reconnectAttemptsRef = useRef(0)
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout>>()
 
   const { data: session } = useQuery({
     queryKey: ['session', sessionId],
@@ -46,80 +51,105 @@ export default function InterviewPage() {
     return () => clearInterval(timerRef.current)
   }, [])
 
-  // WebSocket connection
+  // WebSocket connection — with auto-reconnect.
   useEffect(() => {
     if (!sessionId) return
+    intentionalCloseRef.current = false
+    reconnectAttemptsRef.current = 0
 
-    // Prefer ?candidate_token=… in the URL (candidate-side flow, no JWT available).
-    // Otherwise use the HR's JWT from localStorage.
-    const urlParams = new URLSearchParams(window.location.search)
-    const candidateToken = urlParams.get('candidate_token')
-
-    const stored = localStorage.getItem('auth-storage')
-    const parsed = stored ? JSON.parse(stored) : null
-    const jwt = parsed?.state?.token
-
-    const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-    const qs = candidateToken
-      ? `?candidate_token=${encodeURIComponent(candidateToken)}`
-      : jwt
-        ? `?token=${encodeURIComponent(jwt)}`
-        : ''
-    const wsUrl = `${proto}//${window.location.host}/ws/interview/${sessionId}${qs}`
-    const socket = new WebSocket(wsUrl)
-
-    socket.onopen = () => {
-      setConnected(true)
-      setCurrentSession(sessionId)
-      addMessage({ role: 'system', content: 'Interview session started. Waiting for interviewer...' })
+    const buildUrl = () => {
+      // Prefer ?candidate_token=… (candidate-side flow, no JWT). Else use HR's JWT.
+      const urlParams = new URLSearchParams(window.location.search)
+      const candidateToken = urlParams.get('candidate_token')
+      const stored = localStorage.getItem('auth-storage')
+      const parsed = stored ? JSON.parse(stored) : null
+      const jwt = parsed?.state?.token
+      const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+      const qs = candidateToken
+        ? `?candidate_token=${encodeURIComponent(candidateToken)}`
+        : jwt ? `?token=${encodeURIComponent(jwt)}` : ''
+      return `${proto}//${window.location.host}/ws/interview/${sessionId}${qs}`
     }
 
-    socket.onmessage = (event) => {
-      const data = JSON.parse(event.data)
+    let socket: WebSocket
 
-      switch (data.type) {
-        case 'system':
-          addMessage({ role: 'system', content: data.message })
-          break
-        case 'interviewer_message':
-          addMessage({ 
-            role: 'interviewer', 
-            content: data.text,
-            audioUrl: data.audio 
-          })
-          if (data.audio) {
-            playAudio(data.audio)
-          }
-          setProcessing(false)
-          break
-        case 'interview_complete':
-          addMessage({ role: 'system', content: 'Interview completed! Generating report...' })
-          toast.success('Interview completed!')
-          setTimeout(() => navigate(`/results/${sessionId}`), 2000)
-          break
-        case 'error':
-          toast.error(data.message)
-          setProcessing(false)
-          break
-        case 'processing':
-          setProcessing(true)
-          break
+    const connect = () => {
+      socket = new WebSocket(buildUrl())
+
+      socket.onopen = () => {
+        setConnected(true)
+        setCurrentSession(sessionId)
+        if (reconnectAttemptsRef.current > 0) {
+          addMessage({ role: 'system', content: 'Reconnected — picking up where you left off.' })
+        }
+        reconnectAttemptsRef.current = 0
       }
+
+      socket.onmessage = (event) => {
+        const data = JSON.parse(event.data)
+        switch (data.type) {
+          case 'system':
+            addMessage({ role: 'system', content: data.message })
+            break
+          case 'history':
+            // Backend replays prior messages on (re)connect — rebuild the thread.
+            clearMessages()
+            for (const m of data.messages ?? []) {
+              addMessage({
+                role: m.role === 'interviewer' ? 'interviewer' : m.role === 'candidate' ? 'candidate' : 'system',
+                content: m.content,
+              })
+            }
+            break
+          case 'interviewer_message':
+            addMessage({ role: 'interviewer', content: data.text, audioUrl: data.audio })
+            if (data.audio) playAudio(data.audio)
+            setProcessing(false)
+            break
+          case 'interview_complete':
+            addMessage({ role: 'system', content: 'Interview completed! Generating report...' })
+            toast.success('Interview completed!')
+            intentionalCloseRef.current = true
+            setTimeout(() => navigate(`/results/${sessionId}`), 2000)
+            break
+          case 'error':
+            toast.error(data.message)
+            setProcessing(false)
+            break
+          case 'processing':
+            setProcessing(true)
+            break
+        }
+      }
+
+      socket.onclose = () => {
+        setConnected(false)
+        if (intentionalCloseRef.current) return
+        // Reconnect with exponential backoff (1s,2s,4s,8s,10s…), give up after 6 tries
+        const attempt = reconnectAttemptsRef.current
+        if (attempt >= 6) {
+          addMessage({ role: 'system', content: 'Connection lost. Please refresh the page to resume.' })
+          return
+        }
+        const delay = Math.min(10000, 1000 * 2 ** attempt)
+        reconnectAttemptsRef.current = attempt + 1
+        addMessage({ role: 'system', content: `Connection dropped — reconnecting in ${delay / 1000}s...` })
+        reconnectTimerRef.current = setTimeout(connect, delay)
+      }
+
+      socket.onerror = () => {
+        // onclose fires right after — let it handle the reconnect
+      }
+
+      setWs(socket)
     }
 
-    socket.onclose = () => {
-      setConnected(false)
-      addMessage({ role: 'system', content: 'Connection closed.' })
-    }
-
-    socket.onerror = () => {
-      toast.error('WebSocket error occurred')
-    }
-
-    setWs(socket)
+    connect()
 
     return () => {
-      socket.close()
+      intentionalCloseRef.current = true
+      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current)
+      socket?.close()
       setCurrentSession(null)
     }
   }, [sessionId])

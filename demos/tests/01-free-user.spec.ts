@@ -147,10 +147,10 @@ test('Free Plan — Priya Sharma screening', async ({ page, context }) => {
   await select.selectOption({ index: 1 })
   await pause(page, 500)
 
-  // Click the "Start Interview" submit button in the modal — opens new tab
+  // Click "Conduct Interview Now" in the modal — opens the interview in a new tab
   const [interviewPage] = await Promise.all([
     context.waitForEvent('page', { timeout: 15000 }),
-    slowClick(page, 'div.fixed button:has-text("Start Interview")'),
+    slowClick(page, 'div.fixed button:has-text("Conduct Interview Now")'),
   ])
 
   await interviewPage.waitForLoadState('domcontentloaded')
