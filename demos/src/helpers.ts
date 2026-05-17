@@ -218,13 +218,11 @@ export async function login(page: Page, email: string, password: string) {
     }
   })
 
-  await page.goto('/')
-  await page.waitForLoadState('networkidle')
-
-  // Handle redirect to login
-  if (!page.url().includes('/login')) {
-    await page.goto('/login')
-  }
+  // Go straight to /login — the landing page has marketing content with assets
+  // that prevent 'networkidle'. We don't need the landing page for tests.
+  await page.goto('/login')
+  await page.waitForLoadState('domcontentloaded')
+  await page.waitForSelector('input[type="email"], input[name="email"]', { timeout: 10000 })
 
   await slowType(page, 'input[type="email"], input[name="email"]', email)
   await slowType(page, 'input[type="password"], input[name="password"]', password)
@@ -235,7 +233,8 @@ export async function login(page: Page, email: string, password: string) {
     console.error('[login] redirect failed — url:', page.url())
     throw err
   }
-  await page.waitForLoadState('networkidle')
+  // Use domcontentloaded (not networkidle) — React Query keeps making background fetches
+  await page.waitForLoadState('domcontentloaded')
   // Dismiss onboarding tour if it appears for new accounts
   await page.waitForTimeout(800)
   await page.keyboard.press('Escape').catch(() => {})
