@@ -32,10 +32,12 @@ resource "aws_ssm_parameter" "redis_url" {
 
 resource "aws_ssm_parameter" "frontend_url" {
   name        = "${local.ssm_prefix}/frontend_url"
-  description = "Public frontend URL (CloudFront or custom domain)"
+  description = "Public frontend URL (custom domain when configured, else CloudFront)"
   type        = "String"
-  value       = "https://${aws_cloudfront_distribution.frontend.domain_name}"
-  tags        = { Name = "frontend_url" }
+  # Prefer the custom domain — it's what customers use and what OAuth redirect_uri
+  # must match. Falls back to the raw CloudFront domain when no custom domain is set.
+  value = var.domain_name != "" ? "https://${var.subdomain}.${var.domain_name}" : "https://${aws_cloudfront_distribution.frontend.domain_name}"
+  tags  = { Name = "frontend_url" }
 }
 
 resource "aws_ssm_parameter" "backend_url" {
