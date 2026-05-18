@@ -191,15 +191,17 @@ pub async fn google_callback(
 
 fn oauth_params(state: &AppState) -> Option<(String, String)> {
     let client_id = state.config.google_client_id.clone()?;
-    let redirect_uri = format!("{}/api/v1/oauth/google/callback", backend_base(state));
+    // The OAuth callback is hit by the user's BROWSER, so redirect_uri must be a
+    // public URL — and it must match Google Console exactly. CloudFront serves the
+    // SPA and proxies /api/* to the backend, so the public callback lives under the
+    // frontend origin. OAUTH_REDIRECT_BASE can override it if needed.
+    let base = std::env::var("OAUTH_REDIRECT_BASE")
+        .unwrap_or_else(|_| state.config.frontend_url.clone());
+    let redirect_uri = format!(
+        "{}/api/v1/oauth/google/callback",
+        base.trim_end_matches('/')
+    );
     Some((client_id, redirect_uri))
-}
-
-fn backend_base(state: &AppState) -> String {
-    // In Docker / production the backend is on port 8080; dev proxy makes it transparent.
-    // We derive the backend base from the request host in an ideal world, but for simplicity
-    // we use the env-configured BACKEND_URL or fall back to localhost:8080.
-    std::env::var("BACKEND_URL").unwrap_or_else(|_| "http://localhost:8080".to_string())
 }
 
 #[derive(Debug, serde::Deserialize)]
